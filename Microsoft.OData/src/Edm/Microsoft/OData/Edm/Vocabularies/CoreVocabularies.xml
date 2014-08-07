@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema xmlns="http://docs.oasis-open.org/odata/ns/edm" Namespace="Org.OData.Core.V1"  Alias="Core">
+
+  <!--Documentation -->
+
+  <Term Name="Description" Type="Edm.String" />
+
+  <Term Name="LongDescription" Type="Edm.String" />
+
+  <Term Name="OptimisticConcurrencyControl" Type="Core.OptimisticConcurrencyControlType" />
+
+  <!-- Metadata Extensions -->
+
+  <ComplexType Name="OptimisticConcurrencyControlType">
+    <Annotation Term="Core.Description" String="If present, the annotated entity set uses optimistic concurrency control"/>
+    <Property Name="ETagDependsOn" Type="Collection(Edm.PropertyPath)" Nullable="true">
+      <Annotation Term="Core.Description" String="The ETag is computed from these properties"/>
+    </Property>
+  </ComplexType>
+</Schema>
