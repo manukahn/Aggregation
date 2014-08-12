@@ -26,7 +26,7 @@ namespace Microsoft.OData.Core.Aggregation
         internal static ApplyClause ParseApplyImplementation(string applyQuery, ODataUriParserConfiguration oDataUriParserConfiguration, IEdmType edmType, IEdmNavigationSource edmNavigationSource)
         {
             var res = new ApplyClause();
-            if (applyQuery.StartsWith("?apply="))
+            if (applyQuery.StartsWith(UriQueryConstants.ApplyQueryOption))
                 applyQuery = applyQuery.Substring(7);
 
             var trasformations = new List<Tuple<string, AggregationTransformationBase>>();
@@ -53,6 +53,10 @@ namespace Microsoft.OData.Core.Aggregation
                             UriQueryConstants.FilterTransformation,
                             ParseFilter(res, trasformationQuery, oDataUriParserConfiguration, edmType, edmNavigationSource)));
                         break;
+                    default:
+                        throw new ODataException("Unsupported aggregation transformation");
+                        break;
+
                 }
             }
             res.Transformations = trasformations;
@@ -67,7 +71,6 @@ namespace Microsoft.OData.Core.Aggregation
         /// <returns>a list of <see cref="Tuple<string, string>"/> when item1 is the transformation query and item2 is the transformation name</returns>
         private static List<Tuple<string, string>> GetTransformations(string applyQuery)
         {
-            string firstTransormation;
             var transformationsInQuery = SplitQuery(applyQuery);
             if (transformationsInQuery.Count == 0)
             {
@@ -106,7 +109,7 @@ namespace Microsoft.OData.Core.Aggregation
             }
             catch (Exception)
             {
-                throw new ODataErrorException("Could not find aggregation transformation in the apply query");
+                throw new ODataException("Could not find aggregation transformation in the apply query");
             }
             
         }
@@ -144,7 +147,7 @@ namespace Microsoft.OData.Core.Aggregation
             string aggregationMethod;
             string alias;
             
-            aggregatableProperty = GetAggregatableProperty(query, out alias, out aggregationMethod);
+            aggregatableProperty = GetAggregatableProperty(query, true, out alias, out aggregationMethod);
 
             //create an projection Expression to the property 
             var AggregatablePropertyExpression = ODataQueryOptionParser.ParseExpressionImplementation(
@@ -163,12 +166,25 @@ namespace Microsoft.OData.Core.Aggregation
             };
         }
 
-        private static string GetAggregatableProperty(string query, out string alias, out string aggregationMethod)
+        private static string GetAggregatableProperty(string query, bool validate, out string alias, out string aggregationMethod)
         {
             string aggregatableProperty;
             var verbs = query.Split(' ');
             alias = verbs.Last();
             int withIndex = verbs.Find("with");
+            if (validate)
+            {
+                if (withIndex == -1)
+                {
+                    throw new ODataException("Syntax error: aggregation query does not contain a 'with' statement");
+                }
+                if (withIndex == 0)
+                {
+                    throw new ODataException(
+                        "Syntax error: aggregation query does not contain an aggregation property before the 'with' statement");
+                }
+            }
+
             aggregationMethod = verbs[withIndex + 1];
             aggregatableProperty = verbs[0];
             if (withIndex == 1)
@@ -195,30 +211,33 @@ namespace Microsoft.OData.Core.Aggregation
             //groupby((Customer/Name,Customer/ID,Product/Name,Account))
             //groupby((Customer/Country,Product/Name), aggregate(Amount with sum as Total))
             string selectQuery;
-            string expandQuery = string.Empty; 
             ApplyAggregateClause aggregateClause = null;
 
-            query = IsolateQuery(query, UriQueryConstants.GroupbyTransformation).TrimOne('(',')');
+            query = IsolateQuery(query, UriQueryConstants.GroupbyTransformation);
+            if (query.StartsWith("(") && query.EndsWith(")"))
+            {
+                query = query.TrimOne('(', ')');
+            }
             var p = query.IndexOf(UriQueryConstants.AggregateTransformation + '(');
             if (p == -1)
             {
-                selectQuery = query.Trim('(', ')');
+                if (query.StartsWith("(") && query.EndsWith(")"))
+                {
+                    query = query.TrimOne('(', ')');
+                }
+                selectQuery = query;
             }
             else
             {
                 selectQuery = query.Substring(0, p).Trim().Trim(',').TrimOne('(', ')');
                 aggregateClause = ParseAggregate(apply, query.Substring(p),oDataUriParserConfiguration, edmType, edmNavigationSource);
             }
-            if (selectQuery.Contains('/'))
-            {
-                expandQuery = selectQuery.Substring(0, selectQuery.IndexOf('/'));
-            }
 
             var selectedStatements = selectQuery.Split(',');
             string aggregationMethod, alias;
             var aggregatablePropertyExpressions =
                             selectedStatements.Select(statement => ODataQueryOptionParser.ParseExpressionImplementation(
-                                GetAggregatableProperty(statement, out alias, out aggregationMethod),
+                                GetAggregatableProperty(statement, false, out alias, out aggregationMethod),
                                 oDataUriParserConfiguration,
                                 edmType,
                                 edmNavigationSource)).ToList();
@@ -244,7 +263,8 @@ namespace Microsoft.OData.Core.Aggregation
                 query = query.Substring(trasformation.Length + 2);
             if (query.StartsWith(string.Format("{0}(",trasformation)))
                 query = query.Substring(trasformation.Length + 1);
-            query = query.TrimEnd(')');
+            //query = query.TrimEnd(')');
+            query = query.TrimOne(')');
 
             return query;
         }

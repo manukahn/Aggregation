@@ -53,6 +53,7 @@
     <Compile Include="Aggregation\ApplyFilterClause.cs" />
     <Compile Include="Aggregation\ApplyGroupbyClause.cs" />
     <Compile Include="Aggregation\ApplyParser.cs" />
+    <Compile Include="Aggregation\AssemblyInfo.cs" />
     <Compile Include="Aggregation\ExpressionClause.cs" />
     <Compile Include="Aggregation\Extensions.cs" />
     <Compile Include="Microsoft\OData\Core\EdmValueParser.cs" />
