@@ -18,27 +18,23 @@ namespace TestODataService
         {
             config.MapHttpAttributeRoutes();
 
+            config.MapODataServiceRoute("odata", "odata", model: GetModel());
+
+            config.EnableQuerySupport();
+
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",
                 routeTemplate: "api/{controller}/{id}",
                 defaults: new { id = RouteParameter.Optional }
             );
-
-            config.MapODataServiceRoute("odata", "odata", model: GetModel());
-
-            config.EnableQuerySupport();
         }
 
         public static Microsoft.OData.Edm.IEdmModel GetModel()
         {
             ODataModelBuilder builder = new ODataConventionModelBuilder();
-
             var set =  builder.EntitySet<Sales>("Sales");
-            
+            builder.AddEntityType(typeof(Product));
             var model = builder.GetEdmModel();
-            var product = model.FindDeclaredType("TestODataService.Models.Sales");
-            model.SetAnnotationValue(product, typeof(AggregationTransientEntityAnnotation));
-
             return model;
         }
     }

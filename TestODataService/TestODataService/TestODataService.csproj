@@ -57,6 +57,12 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\Microsoft.OData\src\OData\bin\Debug\Microsoft.Spatial.dll</HintPath>
     </Reference>
+    <Reference Include="MongoDB.Bson">
+      <HintPath>..\packages\mongocsharpdriver.1.9.2\lib\net35\MongoDB.Bson.dll</HintPath>
+    </Reference>
+    <Reference Include="MongoDB.Driver">
+      <HintPath>..\packages\mongocsharpdriver.1.9.2\lib\net35\MongoDB.Driver.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Data.Entity" />
@@ -185,6 +191,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\Entities.cs" />
+    <Compile Include="Models\MongoDal.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

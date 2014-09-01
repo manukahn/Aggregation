@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ namespace TestODataService.Models
 {
     public class Sales
     {
+        [Key]
         public int Id { get; set; }
 
         public Product Product { get; set; }
@@ -16,6 +18,8 @@ namespace TestODataService.Models
         public double Amount { get; set; }
 
         public DateTimeOffset Time { get; set; }
+
+        public Product[] Products { get; set; }
        
     }
 
@@ -23,6 +27,7 @@ namespace TestODataService.Models
 
     public class Product
     {
+        [Key]
         public int ProductIdentifier { get; set; }
 
         public Category Category { get; set; }
