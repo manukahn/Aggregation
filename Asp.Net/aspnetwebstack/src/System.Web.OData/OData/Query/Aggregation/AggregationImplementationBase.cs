@@ -31,6 +31,14 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <returns>The type that is returned from the aggregation method</returns>
         public abstract Type GetResultType(Type elementType, ApplyAggregateClause transformation);
 
+
+        /// <summary>
+        /// Combine temporary results into one final result
+        /// </summary>
+        /// <param name="temporaryResults">The results to combine</param>
+        /// <returns>the final result</returns>
+        public abstract object CombineTemporaryResults(List<object> temporaryResults);
+
         /// <summary>
         /// Helper method to get the type of a property path such as Sales.Product.Category.Name. 
         /// This method returns the type of the Name property.

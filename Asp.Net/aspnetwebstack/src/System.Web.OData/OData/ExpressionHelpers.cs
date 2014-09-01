@@ -112,6 +112,17 @@ namespace System.Web.OData
             return query.Provider.CreateQuery(skipQuery);
         }
 
+
+        public static MethodCallExpression Skip(Expression query, int count, Type type)
+        {
+            MethodInfo skipMethod = ExpressionHelperMethods.QueryableSkipGeneric.MakeGenericMethod(type);
+            Expression skipValueExpression = Expression.Constant(count);
+
+            var skipQuery = Expression.Call(null, skipMethod, new[] { query, skipValueExpression });
+            return skipQuery;
+        }
+
+
         public static IQueryable Take(IQueryable query, int count, Type type, bool parameterize)
         {
             Expression takeQuery = Take(query.Expression, count, type, parameterize);

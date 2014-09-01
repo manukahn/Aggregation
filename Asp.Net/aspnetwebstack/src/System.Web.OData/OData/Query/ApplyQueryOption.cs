@@ -13,6 +13,7 @@ using System.Web.Http.Dispatcher;
 using System.Web.OData.Formatter;
 using System.Web.OData.OData.Query.Aggregation;
 using System.Web.OData.OData.Query.Aggregation.AggregationMethods;
+using System.Web.OData.OData.Query.Aggregation.QueriableImplementation;
 using System.Web.OData.Properties;
 using System.Web.OData.Query;
 using System.Web.OData.Query.Expressions;
@@ -121,12 +122,16 @@ namespace System.Web.OData.OData.Query
             {
                 updatedSettings = new ODataQuerySettings(updatedSettings);
                 updatedSettings.HandleNullPropagation = HandleNullPropagationOption.False;
-                //updatedSettings.HandleNullPropagation = HandleNullPropagationOption.True; 
-                //HandleNullPropagationOptionHelper.GetDefaultHandleNullPropagationOption(query);
             }
 
+            var maxResults = querySettings.PageSize ?? 2000;
+            maxResults = 3;
+
+            IQueryable results =
+                (IQueryable)Activator.CreateInstance(typeof(AggregationQuery<>).MakeGenericType(Context.ElementClrType), query, maxResults);
+            
+
             //Each transformation is the input for the next transformation in the transformations list 
-            IQueryable results = query;
             foreach (var transformation in applyClause.Transformations)
             {
                 switch (transformation.Item1)
@@ -141,9 +146,11 @@ namespace System.Web.OData.OData.Query
                         LambdaExpression propertyToAggregateExpression = FilterBinder.Bind(aggregateClause.AggregatablePropertyExpression, Context.ElementClrType, Context.Model, assembliesResolver, updatedSettings);
                         
                         var aggregationImplementation = AggregationMethodsImplementations.GetAggregationImplementation(aggregateClause.AggregationMethod);
+                        (results.Provider as AggregationQueryProvider).Combiner = aggregationImplementation.CombineTemporaryResults;
+                        
                         var aggragationResult = aggregationImplementation.DoAggregatinon(Context.ElementClrType, results, aggregateClause, propertyToAggregateExpression);
                         var aliasType = aggregationImplementation.GetResultType(Context.ElementClrType, aggregateClause);
-
+                        
                         results = ProjectResult(aggragationResult, aggregateClause.Alias, aliasType);
                         break;
                     case "groupby":
@@ -175,7 +182,7 @@ namespace System.Web.OData.OData.Query
                             propertyToAggregateExpression = FilterBinder.Bind(groupByClause.Aggregate.AggregatablePropertyExpression, Context.ElementClrType, Context.Model, assembliesResolver, updatedSettings);
                  
                             object[] aggragatedValues = null;
-                            groupByImplementation.DoAggregatedGroupBy(results, groupByClause, keyType, propertiesToGroupByExpressions, propertyToAggregateExpression,
+                            groupByImplementation.DoAggregatedGroupBy(results, maxResults, groupByClause, keyType, propertiesToGroupByExpressions, propertyToAggregateExpression,
                                 out keys, out aggragatedValues);
 
                             results = ProjectGroupedResult(groupByClause, keys, aggragatedValues, keyType, Context);
@@ -195,7 +202,13 @@ namespace System.Web.OData.OData.Query
                     throw Error.NotSupported("aggregation not supported", transformation.Item1);
                 }
             }
-            return results;
+
+            object convertedResult = null;
+            if (!QueriableProviderAdapter.ConvertionIsRequiredAsExpressionIfNotSupported(results, maxResults, out convertedResult))
+            {
+                return results;
+            }
+            return convertedResult as IQueryable;
         }
 
         /// <summary>

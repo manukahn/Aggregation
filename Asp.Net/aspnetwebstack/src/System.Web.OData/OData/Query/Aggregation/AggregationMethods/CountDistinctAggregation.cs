@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Web.Http;
 using Microsoft.OData.Core.UriParser.Semantic;
 
 namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
@@ -42,6 +44,29 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         public override Type GetResultType(Type elementType, ApplyAggregateClause transformation)
         {
             return typeof(int);
+        }
+
+        /// <summary>
+        /// Combine temporary results. This is useful when queryable is split due to max page size. 
+        /// </summary>
+        /// <param name="temporaryResults">The results to combine</param>
+        /// <returns>The final result</returns>
+        public override object CombineTemporaryResults(List<object> temporaryResults)
+        {
+            if (temporaryResults.Count() == 1)
+                return temporaryResults[0];
+            var t = temporaryResults[0].GetType();
+            switch (t.Name)
+            {
+                case "Int32": return temporaryResults.Sum(o => (int)o);
+                case "Int64": return temporaryResults.Sum(o => (long)o);
+                case "Int16": return temporaryResults.Sum(o => (short)o);
+                case "Decimal": return temporaryResults.Sum(o => (decimal)o);
+                case "Double": return temporaryResults.Sum(o => (double)o);
+                case "Float": return temporaryResults.Sum(o => (float)o);
+            }
+
+            throw Error.InvalidOperation("unsupported type");
         }
     }
 }

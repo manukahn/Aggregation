@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.OData.OData.Query.Aggregation.AggregationMethods;
+using System.Web.OData.OData.Query.Aggregation.QueriableImplementation;
 using System.Web.OData.OData.Query.Aggregation.SamplingMethods;
 using Microsoft.OData.Core.Aggregation;
 using Microsoft.OData.Core.UriParser.Semantic;
@@ -44,25 +45,33 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// Execute group-by with aggregation on the results
         /// </summary>
         /// <param name="query">The collection to group</param>
+        /// <param name="maxResults">The max number of elements in a result set</param>
         /// <param name="transformation">the group-by transformation as <see cref="ApplyGroupbyClause"/></param>
         /// <param name="keyType">the key type to group by</param>
         /// <param name="propertiesToGroupByExpressions">Lambda expression that represents access to the properties to group by</param>
         /// <param name="propertyToAggregateExpression">Lambda expression that represents access to the property to aggregate</param>
         /// <param name="keys">output the collection keys of the grouped results</param>
         /// <param name="aggragatedValues">output the aggregated results</param>
-        public void DoAggregatedGroupBy(IQueryable query, ApplyGroupbyClause transformation, 
+        public void DoAggregatedGroupBy(IQueryable query, int maxResults, ApplyGroupbyClause transformation, 
             Type keyType, IEnumerable<LambdaExpression> propertiesToGroupByExpressions, LambdaExpression propertyToAggregateExpression, out IQueryable keys, out object[] aggragatedValues)
         {
             var keySelector = this.GetGroupByProjectionLambda(transformation.SelectedStatements.ToArray(), keyType, propertiesToGroupByExpressions.ToArray());
             object comparer = keyType.GetProperty("ComparerInstance").GetValue(null);
             var groupingResults = ExpressionHelpers.GroupBy(query, keySelector, this.Context.ElementClrType, keyType, comparer);
+            var aggregationImplementation =
+                AggregationMethodsImplementations.GetAggregationImplementation(transformation.Aggregate.AggregationMethod);
+            (query.Provider as AggregationQueryProvider).Combiner = aggregationImplementation.CombineTemporaryResults;
+
+            ///if group by is not supported in this IQueriable provider convert the grouping into memory implementation
+            object convertedResult = null;
+            if (QueriableProviderAdapter.ConvertionIsRequiredAsExpressionIfNotSupported(groupingResults, maxResults, out convertedResult))
+            {
+                groupingResults = convertedResult as IQueryable;
+            }
 
             var resType = typeof(List<>).MakeGenericType(this.Context.ElementClrType);
             keys = this.GetGroupingKeys(groupingResults, keyType, this.Context.ElementClrType);
             var groupedValues = this.GetGroupingValues(groupingResults, keyType, resType, this.Context.ElementClrType);
-
-            var aggregationImplementation =
-                AggregationMethodsImplementations.GetAggregationImplementation(transformation.Aggregate.AggregationMethod);
 
             var results = new List<object>();
             foreach (var values in groupedValues)
@@ -127,7 +136,7 @@ namespace System.Web.OData.OData.Query.Aggregation
             var selector = ApplyImplementationBase.GetMethodCallLambda(groupedItemType, toListMethodInfo);
             return ExpressionHelpers.Select(groupedItemType, resType, dataToProject, selector);
         }
-        
+
         /// <summary>
         /// Helper method to create a new dynamic type for the group-by key
         /// </summary>

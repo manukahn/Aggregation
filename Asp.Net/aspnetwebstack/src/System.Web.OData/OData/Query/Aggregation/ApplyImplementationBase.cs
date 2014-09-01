@@ -71,7 +71,7 @@ namespace System.Web.OData.OData.Query.Aggregation
         }
 
         /// <summary>
-        /// create an expression such as: Expression<Func<Sales, double>> Lambda = s => s.Method();
+        /// create an expression of a call to a static methode such as: Expression<Func<Sales, double>> <code>Lambda = s => s.Method();</code>
         /// </summary>
         /// <param name="entityType">The entity type to from which to project</param>
         /// <param name="method">the method to call</param>
@@ -93,6 +93,7 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <param name="entityType">The type of the object on which projection is done</param>
         /// <param name="propertyPath">the property path of the property to retrieve</param>
         /// <param name="entityParam">The parameter on which the expression is based</param>
+        /// <param name="selectedProperyExpression">Expression created by OData parser</param>
         /// <param name="originalPropertyPath">the property path of the property to retrieve that was used originally used (out side recursion)</param>
         /// <returns>An Expression that defines projection</returns>
         internal static Expression GetPropertyExpression(Type entityType, string propertyPath, ParameterExpression entityParam, Expression selectedProperyExpression, string originalPropertyPath = null)
@@ -191,10 +192,6 @@ namespace System.Web.OData.OData.Query.Aggregation
                 return result;
             }
         }
-
-
-
-
 
 
         /// <summary>

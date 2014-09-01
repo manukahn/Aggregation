@@ -261,7 +261,8 @@ namespace System.Web.OData.OData.Query
             StringBuilder propertiesCode = new StringBuilder();
             foreach (var property in properties)
             {
-                propertiesCode.Append(string.Format(propTemplate, property.Item1.FullName, property.Item2));
+                var fullName = property.Item1.FullName.Replace('+', '.');
+                propertiesCode.Append(string.Format(propTemplate, fullName, property.Item2));
             }
             string body = CreateEqualsMethods(typeName, properties.ToArray()) + CreateComparerProperty(typeName) +
                           CreateComparerClass(typeName);
@@ -274,23 +275,26 @@ namespace System.Web.OData.OData.Query
             sb.Append(string.Format(@"public override bool Equals(object obj) {{ if (obj == null) return false; if (obj is {0}) {{  ", typeName));
             for (int i = 0; i < properties.Length; i++)
             {
-                sb.Append(string.Format(@"if ((({0})obj).{1} == default({2}) && this.{1} != default({2})) {{ return false; }}", typeName, properties[i].Item2, properties[i].Item1));
-                sb.Append(string.Format(@"if ((({0})obj).{1} != default({2}) && this.{1} == default({2})) {{ return false; }}", typeName, properties[i].Item2, properties[i].Item1));
+                var propTypeName = properties[i].Item1.FullName.Replace('+', '.');
+                sb.Append(string.Format(@"if ((({0})obj).{1} == default({2}) && this.{1} != default({2})) {{ return false; }}", typeName, properties[i].Item2, propTypeName));
+                sb.Append(string.Format(@"if ((({0})obj).{1} != default({2}) && this.{1} == default({2})) {{ return false; }}", typeName, properties[i].Item2, propTypeName));
             }
             sb.Append("return ");
-            sb.Append(string.Format(@"((({0})obj).{1} == default({2}) && (this.{1} == default({2})) ||", typeName, properties[0].Item2, properties[0].Item1));
+            sb.Append(string.Format(@"((({0})obj).{1} == default({2}) && (this.{1} == default({2})) ||", typeName, properties[0].Item2, properties[0].Item1.FullName.Replace('+', '.')));
             sb.Append(string.Format(@"(({0})obj).{1}.Equals(this.{1}))", typeName, properties[0].Item2));
             for (int i = 1; i < properties.Length; i++)
             {
-                sb.Append(string.Format(@"&&  ((({0})obj).{1} == default({2}) && (this.{1} == default({2})) || ", typeName, properties[i].Item2, properties[i].Item1));
+                var propTypeName = properties[i].Item1.FullName.Replace('+', '.');
+                sb.Append(string.Format(@"&&  ((({0})obj).{1} == default({2}) && (this.{1} == default({2})) || ", typeName, properties[i].Item2, propTypeName));
                 sb.Append(string.Format(@"(({0})obj).{1}.Equals(this.{1}))", typeName, properties[i].Item2));
             }
             sb.Append(";} else {  return false; } } ");
             sb.Append(@"public override int GetHashCode() { return ");
-            sb.Append(string.Format(@"((this.{0} != default({1})) ? this.{0}.GetHashCode() : 0) ", properties[0].Item2, properties[0].Item1));
+            sb.Append(string.Format(@"((this.{0} != default({1})) ? this.{0}.GetHashCode() : 0) ", properties[0].Item2, properties[0].Item1.FullName.Replace('+', '.')));
             for (int i = 1; i < properties.Length; i++)
             {
-                sb.Append(string.Format(@" + ((this.{0} != default({1})) ? this.{0}.GetHashCode() : 0) ", properties[i].Item2, properties[i].Item1));
+                var propTypeName = properties[i].Item1.FullName.Replace('+', '.');
+                sb.Append(string.Format(@" + ((this.{0} != default({1})) ? this.{0}.GetHashCode() : 0) ", properties[i].Item2, propTypeName));
             }
             sb.Append(";}");
 
