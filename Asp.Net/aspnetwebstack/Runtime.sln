@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30414.0
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A9836F9E-6DB3-4D9F-ADCA-CF42D8C8BA93}"
 EndProject
@@ -120,6 +120,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNet.Facebook", "src\Microsoft.AspNet.Facebook\Microsoft.AspNet.Facebook.csproj", "{821A136C-7C6F-44C6-A9E6-C39B5BFB1483}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.AspNet.Facebook.Test", "test\Microsoft.AspNet.Facebook.Test\Microsoft.AspNet.Facebook.Test.csproj", "{C3BEF382-C7C4-454D-B017-1EAC03E9A82C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.Web.OData.Aggregation.Tests", "test\System.Web.OData.Aggregation.Tests\System.Web.OData.Aggregation.Tests.csproj", "{3B30222B-ABC8-4ED1-A230-7F91FB959CBE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -452,6 +454,12 @@ Global
 		{C3BEF382-C7C4-454D-B017-1EAC03E9A82C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3BEF382-C7C4-454D-B017-1EAC03E9A82C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3BEF382-C7C4-454D-B017-1EAC03E9A82C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B30222B-ABC8-4ED1-A230-7F91FB959CBE}.CodeAnalysis|Any CPU.ActiveCfg = Release|Any CPU
+		{3B30222B-ABC8-4ED1-A230-7F91FB959CBE}.CodeAnalysis|Any CPU.Build.0 = Release|Any CPU
+		{3B30222B-ABC8-4ED1-A230-7F91FB959CBE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B30222B-ABC8-4ED1-A230-7F91FB959CBE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B30222B-ABC8-4ED1-A230-7F91FB959CBE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B30222B-ABC8-4ED1-A230-7F91FB959CBE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -511,5 +519,6 @@ Global
 		{66EFD03D-95B7-4C7E-83AC-1A8BD6C12612} = {C40883CD-366D-4534-8B58-3EA0D13136DF}
 		{821A136C-7C6F-44C6-A9E6-C39B5BFB1483} = {A9836F9E-6DB3-4D9F-ADCA-CF42D8C8BA93}
 		{C3BEF382-C7C4-454D-B017-1EAC03E9A82C} = {C40883CD-366D-4534-8B58-3EA0D13136DF}
+		{3B30222B-ABC8-4ED1-A230-7F91FB959CBE} = {C40883CD-366D-4534-8B58-3EA0D13136DF}
 	EndGlobalSection
 EndGlobal
