@@ -125,8 +125,7 @@ namespace System.Web.OData.OData.Query
             }
 
             var maxResults = querySettings.PageSize ?? 2000;
-            maxResults = 3;
-
+            
             IQueryable results =
                 (IQueryable)Activator.CreateInstance(typeof(AggregationQuery<>).MakeGenericType(Context.ElementClrType), query, maxResults);
             
