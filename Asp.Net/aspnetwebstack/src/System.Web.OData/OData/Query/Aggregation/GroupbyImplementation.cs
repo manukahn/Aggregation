@@ -8,7 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.OData.OData.Query.Aggregation.AggregationMethods;
-using System.Web.OData.OData.Query.Aggregation.QueriableImplementation;
+using System.Web.OData.OData.Query.Aggregation.QueryableImplementation;
 using System.Web.OData.OData.Query.Aggregation.SamplingMethods;
 using Microsoft.OData.Core.Aggregation;
 using Microsoft.OData.Core.UriParser.Semantic;

@@ -13,7 +13,7 @@ using System.Web.Http.Dispatcher;
 using System.Web.OData.Formatter;
 using System.Web.OData.OData.Query.Aggregation;
 using System.Web.OData.OData.Query.Aggregation.AggregationMethods;
-using System.Web.OData.OData.Query.Aggregation.QueriableImplementation;
+using System.Web.OData.OData.Query.Aggregation.QueryableImplementation;
 using System.Web.OData.Properties;
 using System.Web.OData.Query;
 using System.Web.OData.Query.Expressions;

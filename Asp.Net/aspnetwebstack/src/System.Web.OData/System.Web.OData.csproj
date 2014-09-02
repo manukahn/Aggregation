@@ -112,8 +112,8 @@
     <Compile Include="OData\ETagMessageHandler.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationImplementationBase.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationMethods\AggregationMethodsImplementations.cs" />
-    <Compile Include="OData\Query\Aggregation\QueriableImplementation\AggregationQuery.cs" />
-    <Compile Include="OData\Query\Aggregation\QueriableImplementation\AggregationQueryProvider.cs" />
+    <Compile Include="OData\Query\Aggregation\QueryableImplementation\AggregationQuery.cs" />
+    <Compile Include="OData\Query\Aggregation\QueryableImplementation\AggregationQueryProvider.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationTypesGenerator.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationImplementations.cs" />
     <Compile Include="OData\Query\Aggregation\ApplyImplementationBase.cs" />
@@ -124,11 +124,11 @@
     <Compile Include="OData\Query\Aggregation\GroupbyImplementation.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationMethods\MaxAggregation.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationMethods\MinAggregation.cs" />
-    <Compile Include="OData\Query\Aggregation\QueriableImplementation\QueryableRecord.cs" />
-    <Compile Include="OData\Query\Aggregation\QueriableImplementation\ExpressionVisitor.cs" />
-    <Compile Include="OData\Query\Aggregation\QueriableImplementation\MethodCallConverter.cs" />
-    <Compile Include="OData\Query\Aggregation\QueriableImplementation\MethodExpressionsMarker.cs" />
-    <Compile Include="OData\Query\Aggregation\QueriableImplementation\QueriableProviderAdapter.cs" />
+    <Compile Include="OData\Query\Aggregation\QueryableImplementation\QueryableRecord.cs" />
+    <Compile Include="OData\Query\Aggregation\QueryableImplementation\ExpressionVisitor.cs" />
+    <Compile Include="OData\Query\Aggregation\QueryableImplementation\MethodCallConverter.cs" />
+    <Compile Include="OData\Query\Aggregation\QueryableImplementation\MethodExpressionsMarker.cs" />
+    <Compile Include="OData\Query\Aggregation\QueryableImplementation\QueriableProviderAdapter.cs" />
     <Compile Include="OData\Query\Aggregation\SamplingImplementationBase.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationMethods\SumAggregation.cs" />
     <Compile Include="OData\Query\Aggregation\SamplingMethods\DaysOfWeekSampling.cs" />

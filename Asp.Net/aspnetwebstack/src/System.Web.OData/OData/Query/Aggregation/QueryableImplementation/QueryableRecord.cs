@@ -5,18 +5,13 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace System.Web.OData.OData.Query.Aggregation.QueriableImplementation
+namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
 {
     /// <summary>
     /// Holds information about a queryable which might be split due to max page size.
     /// </summary>
     public class QueryableRecord
     {
-        /// <summary>
-        /// The queryable as a lazy statement
-        /// </summary>
-        public IQueryable LazyQueryable { get; set; }
-
         /// <summary>
         /// The queryable after enumeration
         /// </summary>
