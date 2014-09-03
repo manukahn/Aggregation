@@ -24,7 +24,7 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// </summary>
         /// <param name="propertyPath">The property path to project</param>
         /// <param name="entityParam">The entity param that contains the entity to project</param>
-        /// <returns>An expression that defines a projection statement</returns>
+        /// <returns>An <see cref="Expression"/> that defines a projection statement</returns>
         internal static Expression GetProjectionExpression(string propertyPath, ParameterExpression entityParam)
         {
             Contract.Assert(entityParam != null);
@@ -40,7 +40,12 @@ namespace System.Web.OData.OData.Query.Aggregation
             return body;
         }
 
-
+        /// <summary>
+        /// Get a <see cref="MemberExpression"/> that defines all the projections that should be used to access the property all the way from the root object
+        /// </summary>
+        /// <param name="propertyPath">the path to the property</param>
+        /// <param name="entityParam">the root object</param>
+        /// <returns>A <see cref="List<Expression>"/>that defines all the projection statements that will be used to access a property from the root object</returns>
         internal static List<Expression> GetProjectionExpressions(string propertyPath, ParameterExpression entityParam)
         {
             Contract.Assert(entityParam != null);

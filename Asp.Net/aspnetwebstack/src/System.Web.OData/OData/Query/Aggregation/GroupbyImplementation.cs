@@ -169,7 +169,7 @@ namespace System.Web.OData.OData.Query.Aggregation
                     }
                     else
                     {
-                        var pi = Context.ElementClrType.GetProperty(statementString);
+                        var pi = Context.ElementClrType.GetProperty(statementString.TrimMethodCallPrefix().Split(' ').First());
                         keyProperties.Add(new Tuple<Type, string>(pi.PropertyType, pi.Name));
                     }
                 }
@@ -303,8 +303,9 @@ namespace System.Web.OData.OData.Query.Aggregation
                     var prop = statement;
                     if (prop.Contains('/'))
                     {
-                        prop = statement.Substring(0, prop.IndexOf('/')).TrimMethodCallPrefix();
+                        prop = statement.Substring(0, prop.IndexOf('/'));
                     }
+                    prop = prop.TrimMethodCallPrefix().Split(' ').First();
                     var mi = keyType.GetMember(prop).First();
                     bindings.Add(Expression.Bind(mi,
                         ApplyImplementationBase.GetPropertyExpression(keyType, statement, entityParam, selectedProperyExpression)));
