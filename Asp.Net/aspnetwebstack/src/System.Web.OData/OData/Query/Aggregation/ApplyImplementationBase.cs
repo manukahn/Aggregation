@@ -6,7 +6,9 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.Http;
 using System.Web.OData.Formatter;
+using Microsoft.OData.Core;
 using Microsoft.OData.Core.Aggregation;
 using Microsoft.OData.Core.UriParser.Semantic;
 
@@ -220,6 +222,11 @@ namespace System.Web.OData.OData.Query.Aggregation
                 if (segments.Length <= 1)
                     return null;
                 var tmp = t.GetProperty(segments[0].Split(' ').First().TrimMethodCallPrefix());
+                if (tmp == null)
+                {
+                    throw Error.InvalidOperation("Invalid Path {0}", path);
+                }
+
                 var res = new List<PropertyInfo>() { tmp };
                 res.AddRange(GetPropertyInfo(tmp.PropertyType, path.Substring(segments[0].Length + 1)));
                 return res;
