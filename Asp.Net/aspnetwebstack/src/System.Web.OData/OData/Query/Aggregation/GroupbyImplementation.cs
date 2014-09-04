@@ -60,7 +60,6 @@ namespace System.Web.OData.OData.Query.Aggregation
             var groupingResults = ExpressionHelpers.GroupBy(query, keySelector, this.Context.ElementClrType, keyType, comparer);
             var aggregationImplementation =
                 AggregationMethodsImplementations.GetAggregationImplementation(transformation.Aggregate.AggregationMethod);
-            (query.Provider as AggregationQueryProvider).Combiner = aggregationImplementation.CombineTemporaryResults;
 
             ///if group by is not supported in this IQueriable provider convert the grouping into memory implementation
             object convertedResult = null;

@@ -28,7 +28,7 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
             }
             var projectionLambda = GetProjectionLambda(elementType, transformation, propertyToAggregateExpression);
             var resultType = this.GetResultType(elementType, transformation);
-            var selected = (ExpressionHelpers.Select(queryToUse, elementType, resultType, projectionLambda)).AsQueryable();
+            var selected = (ExpressionHelpers.QueryableSelect(queryToUse, elementType, resultType, projectionLambda)).AsQueryable();
 
             //call: (selected.AsQueryable() as IQueryable<double>).Max();
             return ExpressionHelpers.Max(resultType, selected);

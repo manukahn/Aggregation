@@ -36,16 +36,17 @@ namespace System.Web.OData.OData.Query
         private ODataQueryOptionParser _queryOptionParser;
         private ApplyClause _applyClause;
 
-        public ApplyQueryOption(string rawValue, ODataQueryContext context, ODataQueryOptionParser queryOptionParser)
+        /// <summary>
+        /// Create a new instance of ApplyQueryOption
+        /// </summary>
+        /// <param name="rawValue"></param>
+        /// <param name="context"></param>
+        /// <param name="queryOptionParser"></param>
+        public ApplyQueryOption(ODataQueryContext context, ODataQueryOptionParser queryOptionParser)
         {
             if (context == null)
             {
                 throw Error.ArgumentNull("context");
-            }
-
-            if (String.IsNullOrEmpty(rawValue))
-            {
-                throw Error.ArgumentNullOrEmpty("rawValue");
             }
 
             if (queryOptionParser == null)
@@ -54,7 +55,6 @@ namespace System.Web.OData.OData.Query
             }
 
             Context = context;
-            RawValue = rawValue;
             _queryOptionParser = queryOptionParser;
         }
 
@@ -85,7 +85,7 @@ namespace System.Web.OData.OData.Query
         /// <summary>
         ///  Gets the raw $apply value.
         /// </summary>
-        public string RawValue { get; private set; }
+        //public string RawValue { get; private set; }
 
 
         /// <summary>
@@ -145,8 +145,12 @@ namespace System.Web.OData.OData.Query
                         LambdaExpression propertyToAggregateExpression = FilterBinder.Bind(aggregateClause.AggregatablePropertyExpression, Context.ElementClrType, Context.Model, assembliesResolver, updatedSettings);
                         
                         var aggregationImplementation = AggregationMethodsImplementations.GetAggregationImplementation(aggregateClause.AggregationMethod);
-                        (results.Provider as AggregationQueryProvider).Combiner = aggregationImplementation.CombineTemporaryResults;
-                        
+                        if (results.Provider is AggregationQueryProvider)
+                        {
+                            (results.Provider as AggregationQueryProvider).Combiner =
+                                aggregationImplementation.CombineTemporaryResults;
+                        }
+
                         var aggragationResult = aggregationImplementation.DoAggregatinon(Context.ElementClrType, results, aggregateClause, propertyToAggregateExpression);
                         var aliasType = aggregationImplementation.GetResultType(Context.ElementClrType, aggregateClause);
                         

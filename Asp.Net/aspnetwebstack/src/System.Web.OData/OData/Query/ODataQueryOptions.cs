@@ -89,7 +89,7 @@ namespace System.Web.OData.Query
                     case "$apply":
                         ThrowIfEmpty(kvp.Value, "$apply");
                         RawValues.Apply = kvp.Value;
-                        Apply = new ApplyQueryOption(kvp.Value, context, _queryOptionParser);
+                        Apply = new ApplyQueryOption(context, _queryOptionParser);
                         break;
                     case "$filter":
                         ThrowIfEmpty(kvp.Value, "$filter");

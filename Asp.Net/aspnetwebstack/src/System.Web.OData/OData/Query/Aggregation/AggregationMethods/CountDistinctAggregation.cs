@@ -26,7 +26,7 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
 
             var projectionLambda = GetProjectionLambda(elementType, transformation, propertyToAggregateExpression);
             var propertyType = GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
-            var selected = (ExpressionHelpers.Select(queryToUse, elementType, propertyType, projectionLambda)).AsQueryable();
+            var selected = (ExpressionHelpers.QueryableSelect(queryToUse, elementType, propertyType, projectionLambda)).AsQueryable();
 
             //call: (selected.AsQueryable() as IQueryable<double>).Ditinct();
             var distinct = ExpressionHelpers.Distinct(propertyType, selected);

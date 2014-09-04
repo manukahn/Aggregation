@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace System.Web.OData.OData.Query.Aggregation
 {
+    /// <summary>
+    /// A base class for all Sampling methods implementations
+    /// </summary>
     public abstract class SamplingImplementationBase : ApplyImplementationBase
     {
         /// <summary>
@@ -23,6 +26,4 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <returns>The type that is returned from the sampling method</returns>
         public abstract Type GetResultType(Type inputType);
     }
-
-    
 }

@@ -85,6 +85,13 @@ namespace System.Web.OData
         }
 
 
+        public static IQueryable QueryableSelect(IQueryable query, Type elementType, Type resultType, LambdaExpression projectionLambda)
+        {
+            MethodInfo selectMethod = ExpressionHelperMethods.QueryableSelectGeneric.MakeGenericMethod(elementType, resultType);
+            return selectMethod.Invoke(null, new object[] { query, projectionLambda }) as IQueryable;
+        }
+
+
         public static object SelectAndSum(IQueryable query, Type elementType, Type resultType, LambdaExpression projectionLambda)
         {
             MethodInfo selectAndSumMethod = ExpressionHelperMethods.QueryableSelectAndSumGeneric(resultType).MakeGenericMethod(elementType);
