@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -11,7 +12,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
     /// <summary>
     /// Converts method calls that uses unsupported expressions to use memory implementations
     /// </summary>
-    internal class MethodCallConverter : ExpressionVisitor
+    internal class MethodCallConverter : ExpressionVisitorBase
     {
         private IQueryProvider _provider;
         private Dictionary<Expression, QueryableRecord> _baseCollections;
@@ -125,7 +126,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         /// Enumerate a collection expressed in the <see cref="MethodCallExpression"/> and bring it to memory
         /// </summary>
         /// <typeparam name="T">The type of elements in the collection</typeparam>
-        /// <param name="m">expression to enumerate</param>
+        /// <param name="m">method call expression to execute</param>
         /// <param name="index">the index in the original collection after enumeration</param>
         /// <param name="limitReached">was the max number of elements allowed to query in a single transaction reached</param>
         /// <returns>an enumeration of the collection expressed in the <see cref="MethodCallExpression"/></returns>
@@ -136,13 +137,82 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 methodToCall = ExpressionHelpers.Skip(m, this._skip, typeof(T));
             }
-            var res = this._provider.Execute(methodToCall);
+
+            object res = null;
+            try
+            {
+                res = this._provider.Execute(methodToCall);
+            }
+            catch (NotSupportedException)
+            {
+                ///If the unsupported method is the lowest in the expression tree method calls we will have to execute it in memory and return the result as the RealQueriable
+                return ExecuteUnsupportedMethodInMemory<T>(m, ref index, out limitReached);
+            }
+            
+            return GetElements<T>(ref index, out limitReached, res);
+        }
+
+        /// <summary>
+        ///  Execute an unsupported method by bringing the IQueryable into memory and run the method on a memory collection
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the collection</typeparam>
+        /// <param name="m">method call expression to execute</param>
+        /// <param name="index">the index in the original collection after enumeration</param>
+        /// <param name="limitReached">was the max number of elements allowed to query in a single transaction reached</param>
+        /// <returns>an enumeration of the collection expressed in the <see cref="MethodCallExpression"/></returns>
+        private IQueryable ExecuteUnsupportedMethodInMemory<T>(MethodCallExpression m, ref int index, out bool limitReached)
+        {
+            var methodToCall = m;
+            if (this._skip > 0)
+            {
+                methodToCall = ExpressionHelpers.Skip(m, this._skip, typeof(T));
+            }
+
+            var newArgs = new List<Expression>();
+            var queriableArg = methodToCall.Arguments.First();
+            LambdaExpression lambda = Expression.Lambda(queriableArg);
+            Delegate fn = lambda.Compile();
+            var dataToload = fn.DynamicInvoke(null) as IQueryable;
+
+            var elements = this.GetElements<T>(ref index, out limitReached, dataToload);
+            newArgs.Add(Expression.Constant(elements));
+
+            newArgs.AddRange(methodToCall.Arguments.Skip(1)); // paste the original arguments (except the first) to the new list
+            var convertedExpression = Expression.Call(methodToCall.Object, methodToCall.Method, newArgs); /// create a new <see cref="MethodCallExpression"/>
+
+            //Execute the new method call that runs on memory
+            LambdaExpression lambda1 = Expression.Lambda(convertedExpression);
+            Delegate fn1 = lambda1.Compile();
+            var res = fn1.DynamicInvoke(null);
+            if (res is IQueryable)
+            {
+                return res as IQueryable;
+            }
+            else
+            {
+                var tmp = new List<object>();
+                tmp.Add(res);
+                return tmp.AsQueryable();
+            }
+        }
+
+        /// <summary>
+        /// Get the elements to memory
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the collection</typeparam>
+        /// <param name="index">the index in the original collection after enumeration</param>
+        /// <param name="limitReached">was the max number of elements allowed to query in a single transaction reached</param>
+        /// <param name="dataToload">data to bring to memory</param>
+        /// <returns></returns>
+        private IQueryable GetElements<T>(ref int index, out bool limitReached, object dataToload)
+        {
             var realCollection = new List<T>();
-            if (res is IEnumerable<T>)
+            var objectCollection = new List<object>();
+            if (dataToload is IEnumerable<T>)
             {
                 int counter = 0;
                 limitReached = false;
-                var enumerator = (res as IEnumerable<T>).GetEnumerator();
+                var enumerator = (dataToload as IEnumerable<T>).GetEnumerator();
                 while (enumerator.MoveNext())
                 {
                     counter++;
@@ -159,9 +229,31 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                 }
                 return realCollection.AsQueryable();
             }
+            else if (dataToload is IQueryable)
+            {
+                int counter = 0;
+                limitReached = false;
+                var enumerator = (dataToload as IQueryable).GetEnumerator();
+                while (enumerator.MoveNext())
+                {
+                    counter++;
+                    if (counter <= this.MaxCollectionSize)
+                    {
+                        objectCollection.Add(enumerator.Current);
+                        index++;
+                    }
+                    else
+                    {
+                        limitReached = true;
+                        return ExpressionHelpers.Cast((dataToload as IQueryable).ElementType, objectCollection.AsQueryable());
+                    }
+                }
+                return ExpressionHelpers.Cast((dataToload as IQueryable).ElementType, objectCollection.AsQueryable());
+                
+            }
             else
             {
-                throw new InvalidOperationException("MethodCallExpression does not produce an IQueryable");
+                throw new InvalidOperationException("cannot enumerate data");
             }
         }
     }

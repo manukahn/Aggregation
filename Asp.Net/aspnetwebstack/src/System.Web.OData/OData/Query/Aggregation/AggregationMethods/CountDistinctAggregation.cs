@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Web.Http;
 using Microsoft.OData.Core.UriParser.Semantic;
 
@@ -31,8 +32,18 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
             //call: (selected.AsQueryable() as IQueryable<double>).Ditinct();
             var distinct = ExpressionHelpers.Distinct(propertyType, selected);
 
-            //call: (distinct.AsQueryable() as IQueryable<double>).Count();
-            return ExpressionHelpers.Count(propertyType, distinct);
+            try
+            {
+                //call: (distinct.AsQueryable() as IQueryable<double>).Count();
+                return ExpressionHelpers.Count(propertyType, distinct);
+            }
+            catch (TargetInvocationException)
+            {
+                //salve a problem in mongo that throw the error "No further operators may follow Distinct in a LINQ query." when trying to construct the expression tree.
+                distinct = ExpressionHelpers.Cast(propertyType, distinct.AllElements().AsQueryable());
+                return ExpressionHelpers.Count(propertyType, distinct);
+            }
+            
         }
 
         /// <summary>
@@ -49,21 +60,22 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <summary>
         /// Combine temporary results. This is useful when queryable is split due to max page size. 
         /// </summary>
-        /// <param name="temporaryResults">The results to combine</param>
+        /// <param name="temporaryResults">The results to combine, as <see cref="<Tuple<object, int>"/> when item1 is the result 
+        /// and item2 is the number of elements that produced this temporary result</param>
         /// <returns>The final result</returns>
-        public override object CombineTemporaryResults(List<object> temporaryResults)
+        public override object CombineTemporaryResults(List<Tuple<object, int>> temporaryResults)
         {
             if (temporaryResults.Count() == 1)
-                return temporaryResults[0];
-            var t = temporaryResults[0].GetType();
+                return temporaryResults[0].Item1;
+            var t = temporaryResults[0].Item1.GetType();
             switch (t.Name)
             {
-                case "Int32": return temporaryResults.Sum(o => (int)o);
-                case "Int64": return temporaryResults.Sum(o => (long)o);
-                case "Int16": return temporaryResults.Sum(o => (short)o);
-                case "Decimal": return temporaryResults.Sum(o => (decimal)o);
-                case "Double": return temporaryResults.Sum(o => (double)o);
-                case "Float": return temporaryResults.Sum(o => (float)o);
+                case "Int32": return temporaryResults.Select(pair => pair.Item1).Sum(o => (int)o);
+                case "Int64": return temporaryResults.Select(pair => pair.Item1).Sum(o => (long)o);
+                case "Int16": return temporaryResults.Select(pair => pair.Item1).Sum(o => (short)o);
+                case "Decimal": return temporaryResults.Select(pair => pair.Item1).Sum(o => (decimal)o);
+                case "Double": return temporaryResults.Select(pair => pair.Item1).Sum(o => (double)o);
+                case "Float": return temporaryResults.Select(pair => pair.Item1).Sum(o => (float)o);
             }
 
             throw Error.InvalidOperation("unsupported type");

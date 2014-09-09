@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Web.Http;
 using Microsoft.OData.Core.UriParser.Semantic;
 
@@ -28,9 +29,9 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
             }
             var projectionLambda = GetProjectionLambda(elementType, transformation, propertyToAggregateExpression);
             var resultType = this.GetResultType(elementType, transformation);
+            
             var selected = (ExpressionHelpers.QueryableSelect(queryToUse, elementType, resultType, projectionLambda)).AsQueryable();
-
-            //call: (selected.AsQueryable() as IQueryable<double>).Max();
+            ///call: (selected.AsQueryable() as IQueryable<double>).Max();
             return ExpressionHelpers.Max(resultType, selected);
         }
 
@@ -49,21 +50,22 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <summary>
         /// Combine temporary results. This is useful when queryable is split due to max page size. 
         /// </summary>
-        /// <param name="temporaryResults">The results to combine</param>
+        /// <param name="temporaryResults">The results to combine, as <see cref="<Tuple<object, int>"/> when item1 is the result 
+        /// and item2 is the number of elements that produced this temporary result</param>
         /// <returns>The final result</returns>
-        public override object CombineTemporaryResults(List<object> temporaryResults)
+        public override object CombineTemporaryResults(List<Tuple<object, int>> temporaryResults)
         {
             if (temporaryResults.Count() == 1)
-                return temporaryResults[0];
-            var t = temporaryResults[0].GetType();
+                return temporaryResults[0].Item1;
+            var t = temporaryResults[0].Item1.GetType();
             switch (t.Name)
             {
-                case "Int32": return temporaryResults.Max(o => (int)o);
-                case "Int64": return temporaryResults.Max(o => (long)o);
-                case "Int16": return temporaryResults.Max(o => (short)o);
-                case "Decimal": return temporaryResults.Max(o => (decimal)o);
-                case "Double": return temporaryResults.Max(o => (double)o);
-                case "Float": return temporaryResults.Max(o => (float)o);
+                case "Int32": return temporaryResults.Select(pair => pair.Item1).Max(o => (int)o);
+                case "Int64": return temporaryResults.Select(pair => pair.Item1).Max(o => (long)o);
+                case "Int16": return temporaryResults.Select(pair => pair.Item1).Max(o => (short)o);
+                case "Decimal": return temporaryResults.Select(pair => pair.Item1).Max(o => (decimal)o);
+                case "Double": return temporaryResults.Select(pair => pair.Item1).Max(o => (double)o);
+                case "Float": return temporaryResults.Select(pair => pair.Item1).Max(o => (float)o);
             }
 
             throw Error.InvalidOperation("unsupported type");

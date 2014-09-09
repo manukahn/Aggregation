@@ -35,6 +35,7 @@ namespace System.Web.OData.OData.Query
     {
         private ODataQueryOptionParser _queryOptionParser;
         private ApplyClause _applyClause;
+        private static MethodInfo _Intercept_mi;
 
         /// <summary>
         /// Create a new instance of ApplyQueryOption
@@ -58,6 +59,13 @@ namespace System.Web.OData.OData.Query
             _queryOptionParser = queryOptionParser;
         }
 
+        static ApplyQueryOption()
+        {
+            _Intercept_mi = typeof(InterceptingProvider)
+               .GetMethods()
+               .FirstOrDefault(mi => mi.IsGenericMethod && mi.Name == "Intercept");
+        }
+
 
 
         /// <summary>
@@ -79,15 +87,8 @@ namespace System.Web.OData.OData.Query
 
                 return _applyClause;
             }
-            
         }
-
-        /// <summary>
-        ///  Gets the raw $apply value.
-        /// </summary>
-        //public string RawValue { get; private set; }
-
-
+        
         /// <summary>
         /// execute the apply query to the given IQueryable.
         /// </summary>
@@ -126,9 +127,8 @@ namespace System.Web.OData.OData.Query
 
             var maxResults = querySettings.PageSize ?? 2000;
             
-            IQueryable results =
-                (IQueryable)Activator.CreateInstance(typeof(AggregationQuery<>).MakeGenericType(Context.ElementClrType), query, maxResults);
-            
+            var mi = _Intercept_mi.MakeGenericMethod(Context.ElementClrType);
+            IQueryable results = mi.Invoke(null, new Object[] { query, maxResults, null }) as IQueryable;
 
             //Each transformation is the input for the next transformation in the transformations list 
             foreach (var transformation in applyClause.Transformations)
@@ -145,9 +145,9 @@ namespace System.Web.OData.OData.Query
                         LambdaExpression propertyToAggregateExpression = FilterBinder.Bind(aggregateClause.AggregatablePropertyExpression, Context.ElementClrType, Context.Model, assembliesResolver, updatedSettings);
                         
                         var aggregationImplementation = AggregationMethodsImplementations.GetAggregationImplementation(aggregateClause.AggregationMethod);
-                        if (results.Provider is AggregationQueryProvider)
+                        if (results.Provider is InterceptingProvider)
                         {
-                            (results.Provider as AggregationQueryProvider).Combiner =
+                            (results.Provider as InterceptingProvider).Combiner =
                                 aggregationImplementation.CombineTemporaryResults;
                         }
 
@@ -207,6 +207,7 @@ namespace System.Web.OData.OData.Query
             }
 
             object convertedResult = null;
+            
             if (!QueriableProviderAdapter.ConvertionIsRequiredAsExpressionIfNotSupported(results, maxResults, out convertedResult))
             {
                 return results;

@@ -11,7 +11,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
     /// <summary>
     /// An expression visitor that is used to discover all the <see cref="MethodCallExpression"/> in an Expression Tree
     /// </summary>
-    internal class MethodExpressionsMarker : ExpressionVisitor
+    internal class MethodExpressionsMarker : ExpressionVisitorBase
     {
         public List<string> MethodsDiscovered = new List<string>();
 

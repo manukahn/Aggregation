@@ -35,9 +35,10 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <summary>
         /// Combine temporary results into one final result
         /// </summary>
-        /// <param name="temporaryResults">The results to combine</param>
+        /// <param name="temporaryResults">The results to combine, as <see cref="<Tuple<object, int>"/> when item1 is the result 
+        /// and item2 is the number of elements that produced this temporary result</param>
         /// <returns>the final result</returns>
-        public abstract object CombineTemporaryResults(List<object> temporaryResults);
+        public abstract object CombineTemporaryResults(List<Tuple<object, int>> temporaryResults);
 
         /// <summary>
         /// Helper method to get the type of a property path such as Sales.Product.Category.Name. 

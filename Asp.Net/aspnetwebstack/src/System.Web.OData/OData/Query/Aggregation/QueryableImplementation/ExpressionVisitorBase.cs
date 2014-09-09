@@ -11,9 +11,9 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
     /// <summary>
     /// Base class for ExpressionVisitors that parse expressions
     /// </summary>
-    internal abstract class ExpressionVisitor
+    internal abstract class ExpressionVisitorBase
     {
-        protected ExpressionVisitor()
+        protected ExpressionVisitorBase()
         {
         }
 

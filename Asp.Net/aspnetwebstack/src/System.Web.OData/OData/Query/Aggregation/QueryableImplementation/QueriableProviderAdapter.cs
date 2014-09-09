@@ -36,10 +36,10 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         /// the max number of results allowed in a single transaction against a persistence provider.
         /// </param>
         /// <returns>A result of a method call expression</returns>
-        public TResult Eval<TResult>(Expression query, Func<List<object>, object> combinerOfTemporaryResults = null)
+        public TResult Eval<TResult>(Expression query, Func<List<Tuple<object, int>>, object> combinerOfTemporaryResults = null)
         {
             var baseCollections = new Dictionary<Expression, QueryableRecord>();
-            var tempResults = new List<object>();
+            var tempResults = new List<Tuple<object, int>>();
             TResult res = EvalImplementation<TResult>(query, baseCollections, 0);
 
             var realRecord = baseCollections.Values.FirstOrDefault(record => record.LimitReached.HasValue && record.LimitReached.Value == true);
@@ -47,12 +47,18 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return res;
             }
-           
-            tempResults.Add(res);
+
+            tempResults.Add(new Tuple<object, int>(res, MaxCollectionSize));
             while (realRecord != null)
             {
                 baseCollections.Clear();
-                tempResults.Add(EvalImplementation<TResult>(query, baseCollections, realRecord.IndexInOriginalQueryable));
+                var result = EvalImplementation<TResult>(query, baseCollections, realRecord.IndexInOriginalQueryable);
+                int numberOfComputedElements = MaxCollectionSize;
+                if (baseCollections.Values.First().LimitReached == false)
+                {
+                    numberOfComputedElements = baseCollections.Values.First().IndexInOriginalQueryable % MaxCollectionSize;
+                }
+                tempResults.Add(new Tuple<object, int>(result, numberOfComputedElements));
                 realRecord = baseCollections.Values.FirstOrDefault(record => record.LimitReached.HasValue && record.LimitReached.Value == true);
             }
 
@@ -73,11 +79,11 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         /// the max number of results allowed in a single transaction against a persistence provider.
         /// </param>
         /// <returns>A result of a method call expression</returns>
-        public object Eval(Expression expression, Func<List<object>, object> combiner = null)
+        public object Eval(Expression query, Func<List<Tuple<object, int>>, object> combinerOfTemporaryResults = null)
         {
             var baseCollections = new Dictionary<Expression, QueryableRecord>();
-            var tempResults = new List<object>();
-            object res = EvalImplementation<object>(expression, baseCollections, 0);
+            var tempResults = new List<Tuple<object, int>>();
+            object res = EvalImplementation<object>(query, baseCollections, 0);
 
             var realRecord = baseCollections.Values.FirstOrDefault(record => record.LimitReached.HasValue && record.LimitReached.Value == true);
             if (realRecord == null)
@@ -85,20 +91,26 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                 return res;
             }
 
-            tempResults.Add(res);
+            tempResults.Add(new Tuple<object, int>(res, MaxCollectionSize));
             while (realRecord != null)
             {
                 baseCollections.Clear();
-                tempResults.Add(EvalImplementation<object>(expression, baseCollections, realRecord.IndexInOriginalQueryable));
+                var result = EvalImplementation<object>(query, baseCollections, realRecord.IndexInOriginalQueryable);
+                int numberOfComputedElements = MaxCollectionSize;
+                if (baseCollections.Values.First().LimitReached == false)
+                {
+                    numberOfComputedElements = baseCollections.Values.First().IndexInOriginalQueryable%MaxCollectionSize;
+                }
+                tempResults.Add(new Tuple<object, int>(result, numberOfComputedElements));
                 realRecord = baseCollections.Values.FirstOrDefault(record => record.LimitReached.HasValue && record.LimitReached.Value == true);
             }
 
-            if (combiner == null)
+            if (combinerOfTemporaryResults == null)
             {
-                combiner = CombineTemporaryResults;
+                combinerOfTemporaryResults = CombineTemporaryResults;
             }
 
-            return combiner(tempResults);
+            return combinerOfTemporaryResults(tempResults);
         }
 
         /// <summary>
@@ -106,7 +118,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         /// </summary>
         /// <param name="temporaryResults">results to combine</param>
         /// <returns>a flatten list of all temporary results</returns>
-        private IQueryable CombineTemporaryResults(List<object> temporaryResults)
+        private IQueryable CombineTemporaryResults(List<Tuple<object, int>> temporaryResults)
         {
             if (!temporaryResults.Any())
             {
@@ -114,17 +126,17 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             }
 
             Type elementType;
-            if (temporaryResults.First() is IEnumerable<object>)
+            if (temporaryResults.First().Item1 is IEnumerable<object>)
             {
-                elementType = (temporaryResults.First() as IEnumerable<object>).First().GetType();
+                elementType = (temporaryResults.First().Item1 as IEnumerable<object>).First().GetType();
             }
             else
             {
-                elementType = temporaryResults.First().GetType();
+                elementType = temporaryResults.First().Item1.GetType();
             }
 
             var finalRes = new List<object>();   
-            foreach (var item in temporaryResults)
+            foreach (var item in temporaryResults.Select(pair=>pair.Item1))
             {
                 if (item is IEnumerable<object>)
                 {
@@ -190,14 +202,17 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             }
             catch (NotSupportedException ex)
             {
-                var unsupportedMethod = ex.Message.Split(' ').Intersect(methodsNames).First();
-                UnsupportedMethodsPerProvider.AddOrUpdate(providerName,
-                    (_) => new List<string>() { unsupportedMethod },
-                    (_, lst) =>
-                    {
-                        lst.Add(unsupportedMethod);
-                        return lst;
-                    });
+                var unsupportedMethod = ex.Message.Split(' ').Intersect(methodsNames).FirstOrDefault();
+                if (!string.IsNullOrEmpty(unsupportedMethod))
+                {
+                    UnsupportedMethodsPerProvider.AddOrUpdate(providerName,
+                        (_) => new List<string>() {unsupportedMethod},
+                        (_, lst) =>
+                        {
+                            lst.Add(unsupportedMethod);
+                            return lst;
+                        });
+                }
 
 
                 var adapter = new QueriableProviderAdapter() { Provider = query.Provider, MaxCollectionSize = maxResults };

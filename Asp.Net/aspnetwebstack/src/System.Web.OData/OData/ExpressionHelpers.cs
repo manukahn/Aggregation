@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -16,8 +17,8 @@ namespace System.Web.OData
 
         public static object Count(Type t, IQueryable query)
         {
-            MethodInfo maxMethod = ExpressionHelperMethods.QueryableSimpleCountGeneric.MakeGenericMethod(t);
-            return maxMethod.Invoke(null, new[] { query });
+            MethodInfo countMethod = ExpressionHelperMethods.QueryableSimpleCountGeneric.MakeGenericMethod(t);
+            return countMethod.Invoke(null, new[] { query });
         }
 
         public static object Max(Type t, IQueryable query)
@@ -46,11 +47,6 @@ namespace System.Web.OData
             return asQueryableMethod.Invoke(null, new[] { query }) as IQueryable;
         }
 
-        public static IEnumerable Select(Type groupedItemType, Type resType, IQueryable dataToProject, LambdaExpression selector)
-        {
-            MethodInfo selectMethod = ExpressionHelperMethods.QueryableSelectGeneric.MakeGenericMethod(groupedItemType, resType);
-            return selectMethod.Invoke(null, new Object[] { dataToProject, selector }) as IEnumerable;
-        }
 
         public static IQueryable Cast(Type t, IQueryable query)
         {
@@ -75,6 +71,14 @@ namespace System.Web.OData
         {
             MethodInfo groupbyMethod = ExpressionHelperMethods.QueryableGroupByGeneric.MakeGenericMethod(itemType, keyType);
             return groupbyMethod.Invoke(null, new object[] { query, keySelector, comparer }) as IQueryable;
+        }
+
+
+
+        public static IQueryable Select(Type groupedItemType, Type resType, IQueryable dataToProject, LambdaExpression selector)
+        {
+            MethodInfo selectMethod = ExpressionHelperMethods.QueryableSelectGeneric.MakeGenericMethod(groupedItemType, resType);
+            return selectMethod.Invoke(null, new Object[] { dataToProject, selector }) as IQueryable;
         }
 
 
@@ -120,13 +124,19 @@ namespace System.Web.OData
         }
 
 
-        public static MethodCallExpression Skip(Expression query, int count, Type type)
+        public static MethodCallExpression Skip(MethodCallExpression m, int count, Type type)
         {
+            var collectionToSkipArg = m.Arguments.First();
+
             MethodInfo skipMethod = ExpressionHelperMethods.QueryableSkipGeneric.MakeGenericMethod(type);
             Expression skipValueExpression = Expression.Constant(count);
+            Expression skipQuery = Expression.Call(null, skipMethod, new[] { collectionToSkipArg, skipValueExpression });
 
-            var skipQuery = Expression.Call(null, skipMethod, new[] { query, skipValueExpression });
-            return skipQuery;
+            var newArgs = new List<Expression>();
+            newArgs.Add(skipQuery);
+
+            newArgs.AddRange(m.Arguments.Skip(1)); // paste the original arguments (except the first) to the new list
+            return Expression.Call(m.Object, m.Method, newArgs); /// create a new <see cref="MethodCallExpression"/>
         }
 
 

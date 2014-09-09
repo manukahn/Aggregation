@@ -110,10 +110,9 @@
     <Compile Include="OData\Builder\OperationTitleAnnotation.cs" />
     <Compile Include="OData\Builder\DynamicPropertyDictionaryAnnotation.cs" />
     <Compile Include="OData\ETagMessageHandler.cs" />
+    <Compile Include="OData\Query\Aggregation\AggregationExtensionMethods.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationImplementationBase.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationMethods\AggregationMethodsImplementations.cs" />
-    <Compile Include="OData\Query\Aggregation\QueryableImplementation\AggregationQuery.cs" />
-    <Compile Include="OData\Query\Aggregation\QueryableImplementation\AggregationQueryProvider.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationTypesGenerator.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationImplementations.cs" />
     <Compile Include="OData\Query\Aggregation\ApplyImplementationBase.cs" />
@@ -124,8 +123,10 @@
     <Compile Include="OData\Query\Aggregation\GroupbyImplementation.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationMethods\MaxAggregation.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationMethods\MinAggregation.cs" />
+    <Compile Include="OData\Query\Aggregation\QueryableImplementation\InterceptedQuery.cs" />
+    <Compile Include="OData\Query\Aggregation\QueryableImplementation\InterceptingProvider.cs" />
     <Compile Include="OData\Query\Aggregation\QueryableImplementation\QueryableRecord.cs" />
-    <Compile Include="OData\Query\Aggregation\QueryableImplementation\ExpressionVisitor.cs" />
+    <Compile Include="OData\Query\Aggregation\QueryableImplementation\ExpressionVisitorBase.cs" />
     <Compile Include="OData\Query\Aggregation\QueryableImplementation\MethodCallConverter.cs" />
     <Compile Include="OData\Query\Aggregation\QueryableImplementation\MethodExpressionsMarker.cs" />
     <Compile Include="OData\Query\Aggregation\QueryableImplementation\QueriableProviderAdapter.cs" />
