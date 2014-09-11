@@ -7,6 +7,7 @@ using Microsoft.OData.Core.UriParser.Semantic;
 
 namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
 {
+    [AggregationMethod("countdistinct")]
     public class CountDistinctAggregation : AggregationImplementationBase
     {
         /// <summary>
@@ -19,15 +20,8 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <returns>The aggregation result</returns>
         public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression)
         {
-            IQueryable queryToUse = query;
-            if (transformation.AggregatableProperty.Contains('/'))
-            {
-                queryToUse = FilterNullValues(query, elementType, transformation);
-            }
-
-            var projectionLambda = GetProjectionLambda(elementType, transformation, propertyToAggregateExpression);
             var propertyType = GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
-            var selected = (ExpressionHelpers.QueryableSelect(queryToUse, elementType, propertyType, projectionLambda)).AsQueryable();
+            var selected = (ExpressionHelpers.QueryableSelect(query, elementType, propertyType, propertyToAggregateExpression)).AsQueryable();
 
             //call: (selected.AsQueryable() as IQueryable<double>).Ditinct();
             var distinct = ExpressionHelpers.Distinct(propertyType, selected);

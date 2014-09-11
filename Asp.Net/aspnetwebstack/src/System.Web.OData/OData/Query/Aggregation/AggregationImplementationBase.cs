@@ -49,7 +49,7 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <returns></returns>
         protected Type GetAggregatedPropertyType(Type entityType, string propertyPath)
         {
-            Contract.Assert(!string.IsNullOrEmpty(propertyPath));
+            Contract.Assert(!String.IsNullOrEmpty(propertyPath));
             Contract.Assert(entityType != null);
 
             var propertyInfo = GetPropertyInfo(entityType, propertyPath);
@@ -68,7 +68,7 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <param name="transformation">The transformation clause created by the parser</param>
         /// <param name="propertyToAggregateExpression">Projection Expression to that defines access to the property to aggregate</param>
         /// <returns></returns>
-        protected static LambdaExpression GetProjectionLambda(Type elementType, ApplyAggregateClause transformation,
+        public static LambdaExpression GetProjectionLambda(Type elementType, ApplyAggregateClause transformation,
             LambdaExpression propertyToAggregateExpression)
         {
             LambdaExpression projectionLambda;
@@ -91,7 +91,7 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <param name="elementType"></param>
         /// <param name="transformation"></param>
         /// <returns></returns>
-        protected IQueryable FilterNullValues(IQueryable query, Type elementType, ApplyAggregateClause transformation)
+        public static IQueryable FilterNullValues(IQueryable query, Type elementType, ApplyAggregateClause transformation)
         {
             var entityParam = Expression.Parameter(elementType, "e");
             IQueryable queryToUse = query;
@@ -110,6 +110,22 @@ namespace System.Web.OData.OData.Query.Aggregation
                 queryToUse = ExpressionHelpers.Where(queryToUse, exp, elementType);
             }
             return queryToUse;
+        }
+
+        /// <summary>
+        /// Create a queryable of items to process
+        /// </summary>
+        /// <param name="elementType">Type of elements in input queryable</param>
+        /// <param name="query">input queryable</param>
+        /// <param name="propertyToAggregateExpression">The lambda expression that chooses a property from the input elements</param>
+        /// <param name="resultType">Type of elements is the output queryable</param>
+        /// <returns></returns>
+        public static IQueryable GetItemsToQuery(Type elementType, IQueryable query,
+            LambdaExpression propertyToAggregateExpression, Type resultType)
+        {
+            var selected =
+                (ExpressionHelpers.QueryableSelect(query, elementType, resultType, propertyToAggregateExpression)).AsQueryable();
+            return selected;
         }
     }
 }

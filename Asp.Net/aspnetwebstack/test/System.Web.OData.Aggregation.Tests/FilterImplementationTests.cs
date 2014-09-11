@@ -56,7 +56,7 @@ namespace System.Web.OData.Aggregation.Tests
         public void FilterGt50(string query, int data)
         {
             IQueryable<Sales> result = null;
-            "exection of apply filter".Given(() => { result = DoFilter(query) as IQueryable<Sales>; });
+            "exection of apply filter".Given(() => { result = DoQuery(query) as IQueryable<Sales>; });
             "result is IQueryable<Sales>".Then(() => result.Should().NotBeNull());
             "only 3 records passed the filter".Then(() => result.Count().ShouldBeEquivalentTo(3));
             "filter was done".Then(() => result.All(item => item.Amount > data).Should().BeTrue());
@@ -65,7 +65,7 @@ namespace System.Web.OData.Aggregation.Tests
         public void FilterGt100(string query, int data)
         {
             IQueryable<Sales> result = null;
-            "exection of apply filter".Given(() => { result = DoFilter(query) as IQueryable<Sales>; });
+            "exection of apply filter".Given(() => { result = DoQuery(query) as IQueryable<Sales>; });
             "result is IQueryable<Sales>".Then(() => result.Should().NotBeNull());
             "only 3 records passed the filter".Then(() => result.Count().ShouldBeEquivalentTo(0));
             "filter was done".Then(() => result.All(item => item.Amount > data).Should().BeTrue());
@@ -74,13 +74,14 @@ namespace System.Web.OData.Aggregation.Tests
         public void FilterGt2(string query, int data)
         {
             IQueryable<Sales> result = null;
-            "exection of apply filter".Given(() => { result = DoFilter(query) as IQueryable<Sales>; });
+            "exection of apply filter".Given(() => { result = DoQuery(query) as IQueryable<Sales>; });
             "result is IQueryable<Sales>".Then(() => result.Should().NotBeNull());
             "only 3 records passed the filter".Then(() => result.Count().ShouldBeEquivalentTo(7));
             "filter was done".Then(() => result.All(item => item.Amount > data).Should().BeTrue());
         }
 
-        public IQueryable DoFilter(string value)
+        
+        public IQueryable DoQuery(string value)
         {
             string queryOption = "$apply";
             var data = TestDataSource.CreateData();

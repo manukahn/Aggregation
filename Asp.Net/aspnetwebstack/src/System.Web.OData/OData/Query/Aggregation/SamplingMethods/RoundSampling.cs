@@ -6,6 +6,7 @@ using System.Text;
 
 namespace System.Web.OData.OData.Query.Aggregation.SamplingMethods
 {
+    [SamplingMethod("round")]
     public class RoundSampling : SamplingImplementationBase
     {
         /// <summary>

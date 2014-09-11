@@ -76,8 +76,13 @@ namespace System.Web.OData.OData.Query.Aggregation
             foreach (var values in groupedValues)
             {
                 var valuesAsQueryable = ExpressionHelpers.AsQueryable(this.Context.ElementClrType, values as IEnumerable);
-                var aggragationResult = aggregationImplementation.DoAggregatinon(this.Context.ElementClrType,
-                    valuesAsQueryable as IQueryable, transformation.Aggregate, propertyToAggregateExpression);
+                IQueryable queryToUse = valuesAsQueryable;
+                if (transformation.Aggregate.AggregatableProperty.Contains('/'))
+                {
+                    queryToUse = AggregationImplementationBase.FilterNullValues(query, this.Context.ElementClrType, transformation.Aggregate);
+                }
+                var projectionLambda = AggregationImplementationBase.GetProjectionLambda(this.Context.ElementClrType, transformation.Aggregate, propertyToAggregateExpression);
+                var aggragationResult = aggregationImplementation.DoAggregatinon(this.Context.ElementClrType, queryToUse, transformation.Aggregate, projectionLambda);
                 results.Add(aggragationResult);
             }
 

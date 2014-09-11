@@ -150,8 +150,13 @@ namespace System.Web.OData.OData.Query
                             (results.Provider as InterceptingProvider).Combiner =
                                 aggregationImplementation.CombineTemporaryResults;
                         }
-
-                        var aggragationResult = aggregationImplementation.DoAggregatinon(Context.ElementClrType, results, aggregateClause, propertyToAggregateExpression);
+                        IQueryable queryToUse = results;
+                        if (aggregateClause.AggregatableProperty.Contains('/'))
+                        {
+                            queryToUse = AggregationImplementationBase.FilterNullValues(query, Context.ElementClrType, aggregateClause);
+                        }
+                        var projectionLambda = AggregationImplementationBase.GetProjectionLambda(Context.ElementClrType, aggregateClause, propertyToAggregateExpression);
+                        var aggragationResult = aggregationImplementation.DoAggregatinon(Context.ElementClrType, queryToUse, aggregateClause, projectionLambda);
                         var aliasType = aggregationImplementation.GetResultType(Context.ElementClrType, aggregateClause);
                         
                         results = ProjectResult(aggragationResult, aggregateClause.Alias, aliasType);

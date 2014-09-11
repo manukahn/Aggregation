@@ -10,6 +10,7 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
     /// <summary>
     /// Implementation of Max aggregation method
     /// </summary>
+    [AggregationMethod("max")]
     public class MaxAggregation : AggregationImplementationBase
     {
         /// <summary>
@@ -22,15 +23,9 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <returns>The Max result</returns>
         public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression)
         {
-            IQueryable queryToUse = query;
-            if (transformation.AggregatableProperty.Contains('/'))
-            {
-                queryToUse = FilterNullValues(query, elementType, transformation);
-            }
-            var projectionLambda = GetProjectionLambda(elementType, transformation, propertyToAggregateExpression);
             var resultType = this.GetResultType(elementType, transformation);
-            
-            var selected = (ExpressionHelpers.QueryableSelect(queryToUse, elementType, resultType, projectionLambda)).AsQueryable();
+
+            var selected = (ExpressionHelpers.QueryableSelect(query, elementType, resultType, propertyToAggregateExpression)).AsQueryable();
             ///call: (selected.AsQueryable() as IQueryable<double>).Max();
             return ExpressionHelpers.Max(resultType, selected);
         }

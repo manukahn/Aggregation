@@ -10,6 +10,7 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
     /// <summary>
     /// Implementation of Sum aggregation method
     /// </summary>
+    [AggregationMethod("sum")]
     public class SumAggregation : AggregationImplementationBase
     {
         /// <summary>
@@ -22,15 +23,8 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <returns>The Sum result</returns>
         public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression)
         {
-            IQueryable queryToUse = query;
-            if (transformation.AggregatableProperty.Contains('/'))
-            {
-                queryToUse = FilterNullValues(query, elementType, transformation);
-            }
-
-            var projectionLambda = GetProjectionLambda(elementType, transformation, propertyToAggregateExpression);
             var resultType = GetResultType(elementType, transformation);
-            return ExpressionHelpers.SelectAndSum(queryToUse, elementType, resultType, projectionLambda);
+            return ExpressionHelpers.SelectAndSum(query, elementType, resultType, propertyToAggregateExpression);
         }
 
         /// <summary>

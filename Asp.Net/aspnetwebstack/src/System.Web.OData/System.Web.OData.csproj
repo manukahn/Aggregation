@@ -39,6 +39,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data.Linq" />
     <Reference Include="System.Net.Http" />
@@ -119,6 +120,7 @@
     <Compile Include="OData\Query\Aggregation\AggregationMethods\AverageAggregation.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationMethods\CountDistinctAggregation.cs" />
     <Compile Include="OData\Query\Aggregation\AssemblyInfo.cs" />
+    <Compile Include="OData\Query\Aggregation\ExternalMethodsHandler.cs" />
     <Compile Include="OData\Query\Aggregation\FilterImplementation.cs" />
     <Compile Include="OData\Query\Aggregation\GroupbyImplementation.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationMethods\MaxAggregation.cs" />

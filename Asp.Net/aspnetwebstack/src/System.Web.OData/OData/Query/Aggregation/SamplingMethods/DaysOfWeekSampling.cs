@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace System.Web.OData.OData.Query.Aggregation.SamplingMethods
 {
+    [SamplingMethod("dayofweek")]
     public class DayOfWeekSampling : SamplingImplementationBase
     {
         /// <summary>

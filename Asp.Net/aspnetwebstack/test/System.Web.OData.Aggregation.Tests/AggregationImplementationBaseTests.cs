@@ -72,9 +72,6 @@ namespace System.Web.OData.Aggregation.Tests
             {
                 this.FilterNullValuesWithValidArgsSimpleProperty(clause);
             }
-
-
-
         }
 
         public void FilterNullValuesWithValidArgsSimpleProperty(ApplyAggregateClause clause)
@@ -84,7 +81,7 @@ namespace System.Web.OData.Aggregation.Tests
             "When calling FilterNullValues".When(
                 () =>
                 {
-                    var res = this.FilterNullValues(data, typeof (Sales), clause);
+                    var res = FilterNullValues(data, typeof (Sales), clause);
                     (res == data).Should().BeTrue();
                 });
         }
@@ -95,7 +92,7 @@ namespace System.Web.OData.Aggregation.Tests
             "path is a complex property".Given(() => clause.AggregatableProperty.Contains('/').Should().BeTrue());
             "When calling FilterNullValues".When(
                 () =>
-                    this.FilterNullValues(TestDataSource.CreateData(), typeof(Sales), clause)
+                    FilterNullValues(TestDataSource.CreateData(), typeof(Sales), clause)
                         .Expression.ToString()
                         .ShouldBeEquivalentTo(
                         "System.Collections.Generic.List`1[System.Web.OData.Aggregation.Tests.Common.Sales].Where(e => (e.Product != null)).Where(e => (e.Product.Category != null))"));
@@ -124,7 +121,8 @@ namespace System.Web.OData.Aggregation.Tests
             throw new NotImplementedException();
         }
 
-        public override object CombineTemporaryResults(List<object> temporaryResults)
+       
+        public override object CombineTemporaryResults(List<Tuple<object, int>> temporaryResults)
         {
             throw new NotImplementedException();
         }

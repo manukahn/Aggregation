@@ -100,14 +100,19 @@
     <Compile Include="AggregationImplementationsTests.cs" />
     <Compile Include="ApplyImplementationBaseTests.cs" />
     <Compile Include="AggregationTypesGeneratorTests.cs" />
+    <Compile Include="ApplyQueryOptionTestBase.cs" />
     <Compile Include="ApplyQueryOptionTests.cs" />
     <Compile Include="Common\Entities.cs" />
     <Compile Include="Common\Extensions.cs" />
     <Compile Include="Common\TestModelBuilder.cs" />
+    <Compile Include="ExternalMethodsHandlerTests.cs" />
     <Compile Include="FilterImplementationTests.cs" />
     <Compile Include="GroupbyImplementationTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Common\TheoryDataSet.cs" />
+    <Compile Include="QueryableImplemetationTests\TestInterceptedQuery.cs" />
+    <Compile Include="QueryableImplemetationTests\AggregationQueryProviderTests.cs" />
+    <Compile Include="QueryableImplemetationTests\TestInterceptingProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

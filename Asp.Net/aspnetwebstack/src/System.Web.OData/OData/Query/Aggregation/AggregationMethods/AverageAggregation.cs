@@ -9,6 +9,7 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
     /// <summary>
     /// Implementation of Average aggregation method
     /// </summary>
+    [AggregationMethod("average")]
     public class AverageAggregation : AggregationImplementationBase
     {
         /// <summary>
@@ -21,17 +22,8 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <returns>The aggregation result</returns>
         public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression)
         {
-            IQueryable queryToUse = query;
-            if (transformation.AggregatableProperty.Contains('/'))
-            {
-                queryToUse = FilterNullValues(query, elementType, transformation);
-            }
-
-            var projectionLambda = GetProjectionLambda(elementType, transformation, propertyToAggregateExpression);
             var resultType = GetResultType(elementType, transformation);
-            return ExpressionHelpers.SelectAndAverage(queryToUse, elementType, resultType, projectionLambda);
-
-
+            return ExpressionHelpers.SelectAndAverage(query, elementType, resultType, propertyToAggregateExpression);
         }
 
         /// <summary>
