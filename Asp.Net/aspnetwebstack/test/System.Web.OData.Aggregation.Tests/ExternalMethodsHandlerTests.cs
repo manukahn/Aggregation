@@ -11,6 +11,7 @@ using System.Web.OData.OData.Query.Aggregation;
 using System.Web.OData.OData.Query.Aggregation.AggregationMethods;
 using System.Web.OData.OData.Query.Aggregation.SamplingMethods;
 using FluentAssertions;
+using Microsoft.OData.Core.UriParser.Semantic;
 using Xbehave;
 using Xunit;
 
@@ -24,10 +25,10 @@ namespace System.Web.OData.Aggregation.Tests
             return (double) input.First() + 1;
         }
 
-        public override object DoAggregatinon(Type elementType, IQueryable query, Microsoft.OData.Core.UriParser.Semantic.ApplyAggregateClause transformation, Linq.Expressions.LambdaExpression propertyToAggregateExpression)
+        public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression)
         {
-           var resultType = this.GetResultType(elementType, transformation);
-           var selected = GetItemsToQuery(elementType, query, propertyToAggregateExpression, resultType);
+           var aggregatedProperyType = GetAggregatedPropertyType(elementType, transformation.AggregatableProperty); 
+           var selected = GetItemsToQuery(elementType, query, propertyToAggregateExpression, aggregatedProperyType);
 
            MethodInfo minMethod = this.GetType().GetMethod("FirstPlusOne");
            return minMethod.Invoke(null, new[] { selected });

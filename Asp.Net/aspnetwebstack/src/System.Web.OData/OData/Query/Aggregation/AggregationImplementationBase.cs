@@ -118,13 +118,13 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <param name="elementType">Type of elements in input queryable</param>
         /// <param name="query">input queryable</param>
         /// <param name="propertyToAggregateExpression">The lambda expression that chooses a property from the input elements</param>
-        /// <param name="resultType">Type of elements is the output queryable</param>
+        /// <param name="aggregatedPropertyType">Type of the selected property to aggregate</param>
         /// <returns></returns>
         public static IQueryable GetItemsToQuery(Type elementType, IQueryable query,
-            LambdaExpression propertyToAggregateExpression, Type resultType)
+            LambdaExpression propertyToAggregateExpression, Type aggregatedPropertyType)
         {
             var selected =
-                (ExpressionHelpers.QueryableSelect(query, elementType, resultType, propertyToAggregateExpression)).AsQueryable();
+                (ExpressionHelpers.QueryableSelect(query, elementType, aggregatedPropertyType, propertyToAggregateExpression)).AsQueryable();
             return selected;
         }
     }
