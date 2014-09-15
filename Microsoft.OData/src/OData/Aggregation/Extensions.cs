@@ -7,6 +7,13 @@ namespace Microsoft.OData.Core.Aggregation
 {
     public static class Extensions
     {
+        /// <summary>
+        /// Find an element in an array
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="array"></param>
+        /// <param name="elemenet"></param>
+        /// <returns></returns>
         public static int Find<T>(this T[] array, T elemenet)
         {
             for (int i = 0; i < array.Length; i++)
@@ -17,6 +24,13 @@ namespace Microsoft.OData.Core.Aggregation
             return -1;
         }
 
+
+        /// <summary>
+        /// Remove a single occurrence of each character from the head or tail of the string
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="charactersToTrim"></param>
+        /// <returns></returns>
         public static string TrimOne(this string str, params char[] charactersToTrim)
         {
             int start = 0;
@@ -44,7 +58,11 @@ namespace Microsoft.OData.Core.Aggregation
 
         }
 
-
+        /// <summary>
+        /// Remove call to the method from the string
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
         public static string TrimMethodCallPrefix(this string str)
         {
             var p = str.IndexOf('(');
@@ -58,10 +76,25 @@ namespace Microsoft.OData.Core.Aggregation
             }
         }
 
+        /// <summary>
+        /// Remove the last ')' from the method call
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
         public static string TrimMethodCallSufix(this string str)
         {
             return str.Trim().TrimOne(')');
             
+        }
+
+        /// <summary>
+        /// Trim method call. Example: "round(value)" to: "value"
+        /// </summary>
+        /// <param name="str"></param>
+        /// <returns></returns>
+        public static string TrimMethodCall(this string str)
+        {
+            return str.TrimMethodCallPrefix().TrimMethodCallSufix();
         }
     }
 }
