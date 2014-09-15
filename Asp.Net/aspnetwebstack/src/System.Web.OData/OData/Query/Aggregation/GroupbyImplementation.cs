@@ -159,7 +159,7 @@ namespace System.Web.OData.OData.Query.Aggregation
             foreach (var statement in selectedStatementsDictionary)
             {
                 // simple property
-                var statementString = statement.Value.First().TrimMethodCallSufix();
+                var statementString = statement.Value.First();
                 if ((statement.Value.Count() == 1) && (statementString == statement.Key))
                 {
                     string samplingMethod, alias, samplingProperty;
@@ -173,13 +173,13 @@ namespace System.Web.OData.OData.Query.Aggregation
                     }
                     else
                     {
-                        var pi = Context.ElementClrType.GetProperty(statementString.TrimMethodCallPrefix().Split(' ').First());
+                        var pi = Context.ElementClrType.GetProperty(statementString.TrimMethodCall().Split(' ').First());
                         keyProperties.Add(new Tuple<Type, string>(pi.PropertyType, pi.Name));
                     }
                 }
                 else // complex property
                 {
-                    var propName = statement.Key.TrimMethodCallPrefix();
+                    var propName = statement.Key.TrimMethodCall();
                     var pi = Context.ElementClrType.GetProperty(propName);
                     var newPropertyType = GenerateComplexType(pi.PropertyType, statement.Value);
                     keyProperties.Add(new Tuple<Type, string>(newPropertyType, propName));
@@ -309,7 +309,7 @@ namespace System.Web.OData.OData.Query.Aggregation
                     {
                         prop = statement.Substring(0, prop.IndexOf('/'));
                     }
-                    prop = prop.TrimMethodCallPrefix().Split(' ').First();
+                    prop = prop.TrimMethodCall().Split(' ').First();
                     var mi = keyType.GetMember(prop).First();
                     bindings.Add(Expression.Bind(mi,
                         ApplyImplementationBase.GetPropertyExpression(keyType, statement, entityParam, selectedProperyExpression)));
