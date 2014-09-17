@@ -106,5 +106,29 @@ namespace Microsoft.OData.Core.UriParser.Parsers
 
             return res;
         }
+
+        /// <summary>
+        /// Binds the given member token.
+        /// </summary>
+        /// <param name="member">The member token to bind.</param>
+        /// <returns>A FilterNode with the given path linked to it (if provided).</returns>
+        internal ExpressionClause BindProperyExpression(QueryToken member)
+        {
+            ExceptionUtils.CheckArgumentNotNull(member, "filter");
+
+            QueryNode expressionNode = this.bindMethod(member);
+
+            SingleValueNode expressionResultNode = expressionNode as SingleValueNode;
+            if (expressionResultNode == null)
+            {
+                throw new ODataException("The property expression must evaluate to a single value.");
+            }
+
+            // The type may be null here if the query statically represents the null literal or an open property.
+            IEdmTypeReference expressionResultType = expressionResultNode.TypeReference;
+            ExpressionClause res = new ExpressionClause(expressionResultNode, this.state.ImplicitRangeVariable);
+
+            return res;
+        }
     }
 }

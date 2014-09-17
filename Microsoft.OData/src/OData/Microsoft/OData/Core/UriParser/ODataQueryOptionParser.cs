@@ -313,7 +313,7 @@ namespace Microsoft.OData.Core.UriParser
             state.RangeVariables.Push(state.ImplicitRangeVariable);
             MetadataBinder binder = new MetadataBinder(state);
             FilterBinder filterBinder = new FilterBinder(binder.Bind, state);
-            ExpressionClause boundNode = filterBinder.BindExpression(expressionToken);
+            ExpressionClause boundNode = filterBinder.BindProperyExpression(expressionToken);
 
             return boundNode;
         }

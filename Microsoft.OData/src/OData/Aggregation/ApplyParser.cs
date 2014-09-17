@@ -235,12 +235,22 @@ namespace Microsoft.OData.Core.Aggregation
 
             var selectedStatements = selectQuery.Split(',');
             string aggregationMethod, alias;
-            var aggregatablePropertyExpressions =
+            List<ExpressionClause> aggregatablePropertyExpressions = null;
+            try
+            {
+                aggregatablePropertyExpressions =
                             selectedStatements.Select(statement => ODataQueryOptionParser.ParseExpressionImplementation(
                                 GetAggregatableProperty(statement, false, out alias, out aggregationMethod),
                                 oDataUriParserConfiguration,
                                 edmType,
                                 edmNavigationSource)).ToList();
+            }
+            catch (Exception ex)
+            {
+                
+                throw;
+            }
+            
             
             return new ApplyGroupbyClause()
             {
