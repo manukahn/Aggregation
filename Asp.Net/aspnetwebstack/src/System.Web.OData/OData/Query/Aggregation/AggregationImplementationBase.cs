@@ -18,10 +18,10 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// Execute the aggregation method
         /// </summary>
         /// <param name="elementType">The element type on which the aggregation method operates</param>
-        /// <param name="query">The collection on which to execute</param>
+        /// <param name="collection">The collection on which to execute</param>
         /// <param name="transformation">The name of the aggregation transformation</param>
         /// <returns>The result of the aggregation</returns>
-        public abstract object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression);
+        public abstract object DoAggregatinon(Type elementType, IQueryable collection, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression);
 
         /// <summary>
         /// Determines the type that is returned from the aggregation method 

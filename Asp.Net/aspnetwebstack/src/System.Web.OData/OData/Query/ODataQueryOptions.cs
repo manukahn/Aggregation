@@ -290,6 +290,7 @@ namespace System.Web.OData.Query
             if (Apply != null)
             {
                 result = Apply.ApplyTo(result, querySettings, _assembliesResolver);
+                UpdateOtherQueryOptions(result);
             }
             // Construct the actual query and apply them in the following order: filter, orderby, skip, top
             if (Filter != null)
@@ -357,6 +358,31 @@ namespace System.Web.OData.Query
             }
 
             return result;
+        }
+
+        private void UpdateOtherQueryOptions(IQueryable result)
+        {
+            var newContext = new ODataQueryContext(this.Context.Model, result.ElementType);
+            if (this.Count != null)
+            {
+                this.Count.Context = newContext;
+            }
+            if (this.Top != null)
+            {
+                this.Top.Context = newContext;
+            }
+            if (this.Skip != null)
+            {
+                this.Skip.Context = newContext;
+            }
+            if (this.Filter != null)
+            {
+                this.Filter.Context = newContext;
+            }
+            if (this.OrderBy != null)
+            {
+                this.OrderBy.Context = newContext;
+            }
         }
 
         /// <summary>

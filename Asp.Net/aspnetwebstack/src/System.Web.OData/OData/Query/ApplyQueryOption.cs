@@ -126,7 +126,7 @@ namespace System.Web.OData.OData.Query
             }
 
             var maxResults = querySettings.PageSize ?? 2000;
-            
+           
             var mi = _Intercept_mi.MakeGenericMethod(Context.ElementClrType);
             IQueryable results = mi.Invoke(null, new Object[] { query, maxResults, null }) as IQueryable;
 
@@ -217,6 +217,7 @@ namespace System.Web.OData.OData.Query
             {
                 return results;
             }
+            
             return convertedResult as IQueryable;
         }
 

@@ -114,10 +114,10 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         }
 
         /// <summary>
-        /// Combine temporary results by simply writing them to a flat list. 
+        /// Combine temporary results by simply writing them to a flat list of distinct items. 
         /// </summary>
         /// <param name="temporaryResults">results to combine</param>
-        /// <returns>a flatten list of all temporary results</returns>
+        /// <returns>a flatten list of all distinct temporary results</returns>
         private IQueryable CombineTemporaryResults(List<Tuple<object, int>> temporaryResults)
         {
             if (!temporaryResults.Any())
@@ -147,8 +147,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                     finalRes.Add(item);
                 }
             }
-
-            return ExpressionHelpers.Cast(elementType, finalRes.AsQueryable());
+            return ExpressionHelpers.Cast(elementType, finalRes.Distinct().AsQueryable());
         }
 
 

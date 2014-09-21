@@ -71,7 +71,7 @@ namespace System.Web.OData.Query
         /// <summary>
         /// Gets the given <see cref="ODataQueryContext"/>.
         /// </summary>
-        public ODataQueryContext Context { get; private set; }
+        public ODataQueryContext Context { get; set; }
 
         /// <summary>
         /// Gets the raw $count value.

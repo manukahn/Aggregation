@@ -6,6 +6,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -22,7 +23,6 @@ namespace System.Web.OData.OData.Query
 {
     public static class AggregationDynamicTypeCache
     {
-
         static AggregationDynamicTypeCache()
         {
             AppDomain.CurrentDomain.AssemblyResolve += (sender, e) =>
@@ -37,8 +37,7 @@ namespace System.Web.OData.OData.Query
         }
 
         internal static Dictionary<string, Type> ExistingTypes = new Dictionary<string, Type>();
-        private static ConcurrentDictionary<string, object> SyncLocks = new ConcurrentDictionary<string, object>();
-
+        private static ConcurrentDictionary<string, object> syncLocks = new ConcurrentDictionary<string, object>();
         private static Dictionary<string, Assembly> assemblies = new Dictionary<string, Assembly>();
 
         public static void AddAssembly(Assembly newAssembly)
@@ -51,7 +50,7 @@ namespace System.Web.OData.OData.Query
 
         public static object GetLock(string key)
         {
-            return SyncLocks.GetOrAdd(key, _ => new object());
+            return syncLocks.GetOrAdd(key, _ => new object());
         }
     }
     
@@ -66,7 +65,7 @@ namespace System.Web.OData.OData.Query
         /// <param name="properties">List of properties for the new type</param>
         /// <param name="context">The OData query context</param>
         /// <param name="asEdmEntity">Should the new type be defined as entity or complex type in the EDM model</param>
-        /// <returns></returns>
+        /// <returns>The new generated type</returns>
         public static Type CreateType(List<Tuple<Type, string>> properties, ODataQueryContext context, bool asEdmEntity)
         {
             Contract.Assert(properties != null);
@@ -147,12 +146,40 @@ namespace System.Web.OData.OData.Query
             }
         }
 
-        private static EdmComplexType CreateEdmComplexType(Type clrType, ODataQueryContext context)
+        /// <summary>
+        /// Create a entry in the EDM document for this new type 
+        /// </summary>
+        /// <param name="clrType">The new type that was generated</param>
+        /// <param name="context">The OData context</param>
+        /// <param name="asEdmEntity">Determines whether to create an entity or a complex type</param>
+        /// <returns>The new EDM schema element as a <see cref="IEdmSchemaElement"/></returns>
+        public static IEdmSchemaElement CreateEdmSechmaElement(Type clrType, ODataQueryContext context, bool asEdmEntity)
         {
             Contract.Assert(clrType != null);
             Contract.Assert(context != null);
 
-            var entryEdmType = new EdmComplexType("ODataAggregation.DynamicTypes", clrType.Name);
+            EdmStructuredType entryEdmType;
+            if (asEdmEntity)
+            {
+                entryEdmType = new EdmEntityType("ODataAggregation.DynamicTypes", clrType.Name);
+                CreateSchemaType(clrType, context, entryEdmType);
+                return entryEdmType as IEdmSchemaElement;
+            }
+
+            entryEdmType = new EdmComplexType("ODataAggregation.DynamicTypes", clrType.Name);
+            CreateSchemaType(clrType, context, entryEdmType);
+            return entryEdmType as IEdmSchemaElement; 
+        }
+       
+
+        /// <summary>
+        /// Implement the creation of an EDM Entity Type or EDM Complex Type
+        /// </summary>
+        /// <param name="clrType">The CLR type of the new schema element to create</param>
+        /// <param name="context">The query context</param>
+        /// <param name="entryEdmType">The new Schema element</param>
+        private static void CreateSchemaType(Type clrType, ODataQueryContext context, EdmStructuredType entryEdmType)
+        {
             foreach (var pi in clrType.GetProperties())
             {
                 if (pi.Name == "ComparerInstance")
@@ -161,71 +188,50 @@ namespace System.Web.OData.OData.Query
                 }
                 if (pi.PropertyType.IsPrimitive || pi.PropertyType.FullName == "System.String")
                 {
-                    entryEdmType.AddStructuralProperty(
-                        pi.Name,
-                        GetPrimitiveTypeKind(pi.PropertyType),
-                        true);
+                    entryEdmType.AddStructuralProperty(pi.Name, GetPrimitiveTypeKind(pi.PropertyType), true);
+                }
+                else if (pi.PropertyType.IsEnum)
+                {
+                    var enumType = GetEnumTypeKind(pi.PropertyType, context);
+                    if (enumType != null)
+                    {
+                        entryEdmType.AddStructuralProperty(pi.Name, enumType);
+                    }
+                    else
+                    {
+                        entryEdmType.AddStructuralProperty(pi.Name, EdmPrimitiveTypeKind.Int32);
+                    }
                 }
                 else
                 {
                     var propEdmType = context.Model.FindDeclaredType(pi.PropertyType.FullName);
                     if (propEdmType != null)
                     {
-                        entryEdmType.AddStructuralProperty(
-                            pi.Name,
-                            propEdmType.ToEdmTypeReference(true));
+                        entryEdmType.AddStructuralProperty(pi.Name, propEdmType.ToEdmTypeReference(true));
                     }
-                }
-            }
-            return entryEdmType;
-        }
-        
-        private static EdmEntityType CreateEdmEntityType(Type clrType, ODataQueryContext context)
-        {
-            Contract.Assert(clrType != null);
-            Contract.Assert(context != null);
-            var entryEdmType = new EdmEntityType("ODataAggregation.DynamicTypes", clrType.Name);
-
-            foreach (var pi in clrType.GetProperties())
-            {
-                if (pi.Name == "ComparerInstance")
-                {
-                    continue;
-                }
-                if (pi.PropertyType.IsPrimitive || pi.PropertyType.FullName == "System.String" || pi.PropertyType.IsEnum)
-                {
-                    entryEdmType.AddStructuralProperty(
-                        pi.Name,
-                        GetPrimitiveTypeKind(pi.PropertyType),
-                        true);
-                }
-                else
-                {
-                    var propEdmType = context.Model.FindDeclaredType(pi.PropertyType.FullName);
-                    if (propEdmType != null)
+                    else
                     {
-                        entryEdmType.AddStructuralProperty(
-                            pi.Name,
-                            propEdmType.ToEdmTypeReference(true));
+                        var t = Type.GetType(pi.PropertyType.FullName);
+                        var edmType = context.Model.GetEdmTypeReference(t);
+                        if (edmType != null)
+                        {
+                            entryEdmType.AddStructuralProperty(pi.Name, edmType);
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException(string.Format("Could not find EDM type of {0}",pi.PropertyType.FullName));
+                        }
                     }
                 }
             }
-           
-            return entryEdmType;
-        }
-        
-        public static IEdmSchemaElement CreateEdmSechmaElement(Type clrType, ODataQueryContext context, bool asEdmEntity)
-        {
-            Contract.Assert(clrType != null);
-            Contract.Assert(context != null);
-
-            IEdmSchemaElement entryEdmType;
-            if (asEdmEntity)
-                return CreateEdmEntityType(clrType, context);
-
-            return CreateEdmComplexType(clrType, context);
         }
 
+        /// <summary>
+        /// Compute the class name that should be created. A class name contains a hash of the combination of its properties.
+        /// </summary>
+        /// <param name="properties"></param>
+        /// <param name="asEdmEntity"></param>
+        /// <returns></returns>
         private static string GenerateClassName(List<Tuple<Type, string>> properties, bool asEdmEntity)
         {
             string prefix = asEdmEntity ? "Entity" : "ComplexType";
@@ -238,6 +244,11 @@ namespace System.Web.OData.OData.Query
             return prefix + CalculateMD5Hash(valueToHash.ToString());
         }
         
+        /// <summary>
+        /// Calculate a MD5 hash 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         private static string CalculateMD5Hash(string input)
         {
             // step 1, calculate MD5 hash from input
@@ -254,6 +265,12 @@ namespace System.Web.OData.OData.Query
             return "DynamicType" + sb.ToString();
         }
 
+        /// <summary>
+        /// Create the code of the new type
+        /// </summary>
+        /// <param name="typeName"></param>
+        /// <param name="properties"></param>
+        /// <returns></returns>
         private static string CreateCode(string typeName, List<Tuple<Type, string>> properties)
         {
             string classTemplate = @"namespace ODataAggregation.DynamicTypes {{ public class {0} {{ {1} {2} }} }}";
@@ -269,6 +286,12 @@ namespace System.Web.OData.OData.Query
             return string.Format(classTemplate, typeName, propertiesCode.ToString(), body);
         }
 
+        /// <summary>
+        /// Compose an Equals and a GetHashCode for the new type
+        /// </summary>
+        /// <param name="typeName"></param>
+        /// <param name="properties"></param>
+        /// <returns></returns>
         private static string CreateEqualsMethods(string typeName, params Tuple<Type, string>[] properties)
         {
             StringBuilder sb = new StringBuilder();
@@ -302,6 +325,11 @@ namespace System.Web.OData.OData.Query
 
         }
 
+        /// <summary>
+        /// Add a property of type IEqualityComparer to the new type
+        /// </summary>
+        /// <param name="typeName"></param>
+        /// <returns></returns>
         private static string CreateComparerProperty(string typeName)
         {
             return
@@ -310,11 +338,21 @@ namespace System.Web.OData.OData.Query
                     typeName);
         }
 
+        /// <summary>
+        /// Compose an implementation of IEqualityComparer
+        /// </summary>
+        /// <param name="typeName"></param>
+        /// <returns></returns>
         private static string CreateComparerClass(string typeName)
         {
             return string.Format(@"public class Comparer : System.Collections.Generic.IEqualityComparer<{0}>{{ public bool Equals({0} x, {0} y) {{  if ((x == null) && (y == null)){{ return true; }}  if ((x == null) || (y == null)) {{ return false; }}  return x.Equals(y); }} public int GetHashCode({0} obj) {{ return obj.GetHashCode(); }} }}", typeName);
         }
         
+        /// <summary>
+        /// Helper method that maps a primitive type to <see cref="EdmPrimitiveTypeKind"/>
+        /// </summary>
+        /// <param name="t"></param>
+        /// <returns></returns>
         private static EdmPrimitiveTypeKind GetPrimitiveTypeKind(Type t)
         {
             Contract.Assert(t != null);
@@ -336,12 +374,43 @@ namespace System.Web.OData.OData.Query
                 case "Duration": return EdmPrimitiveTypeKind.Duration;
             }
 
-            if (t.IsEnum)
-            {
-                return EdmPrimitiveTypeKind.Int32;
-            }
-
             throw Error.InvalidOperation("unsupported type");
         }
+
+        /// <summary>
+        /// Find the <see cref="IEdmTypeReference"/> of an <see cref="Enum"/> property
+        /// </summary>
+        /// <param name="type">the CLR type of the property</param>
+        /// <param name="context">The query context</param>
+        /// <returns></returns>
+        private static IEdmTypeReference GetEnumTypeKind(Type type, ODataQueryContext context)
+        {
+            var res = context.Model.FindDeclaredType(type.FullName);
+            if (res != null)
+            {
+                return res.ToEdmTypeReference(true);
+            }
+
+            var elementType = context.Model.FindDeclaredType(context.ElementType.FullTypeName());
+            var enumProperties = elementType.ToEdmTypeReference(true)
+                .AsStructured()
+                .StructuralProperties()
+                .Where(p => p.Type as EdmEnumTypeReference != null);
+
+
+            if (enumProperties.Count() == 1)
+            {
+                return enumProperties.First().Type;
+            }
+
+            var sameNameEnumProps = enumProperties.Where(p => p.Name == type.Name);
+            if (sameNameEnumProps.Count() == 1)
+            {
+                return sameNameEnumProps.First().Type;
+            }
+
+            return null;
+        }
+      
     }
 }
