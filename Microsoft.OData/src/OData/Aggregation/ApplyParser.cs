@@ -247,8 +247,8 @@ namespace Microsoft.OData.Core.Aggregation
             }
             catch (Exception ex)
             {
-                
-                throw;
+                //parsing of some expressions such as DateTimeOffset/Minute are not supported so ODataQueryOptionParser.ParseExpressionImplementation will fail
+                aggregatablePropertyExpressions = null;
             }
             
             
