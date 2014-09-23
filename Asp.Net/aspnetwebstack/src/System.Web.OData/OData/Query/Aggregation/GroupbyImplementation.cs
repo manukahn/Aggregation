@@ -58,7 +58,10 @@ namespace System.Web.OData.OData.Query.Aggregation
         public void DoAggregatedGroupBy(IQueryable query, int maxResults, ApplyGroupbyClause transformation, 
             Type keyType, IEnumerable<LambdaExpression> propertiesToGroupByExpressions, LambdaExpression propertyToAggregateExpression, out IQueryable keys, out object[] aggragatedValues)
         {
-            var keySelector = this.GetGroupByProjectionLambda(transformation.SelectedStatements.ToArray(), keyType, propertiesToGroupByExpressions.ToArray());
+            var propToGroupBy = (propertiesToGroupByExpressions != null)
+               ? propertiesToGroupByExpressions.ToArray()
+               : null;
+            var keySelector = this.GetGroupByProjectionLambda(transformation.SelectedStatements.ToArray(), keyType, propToGroupBy);
             object comparer = keyType.GetProperty("ComparerInstance").GetValue(null);
             var groupingResults = ExpressionHelpers.GroupBy(query, keySelector, this.Context.ElementClrType, keyType, comparer);
             var aggregationImplementation =
