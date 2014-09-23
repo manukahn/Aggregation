@@ -132,13 +132,21 @@ namespace System.Web.OData.OData.Query.Aggregation
                     entityParam, selectedProperyExpression, originalPropertyPath);
                 
                 var binding = Expression.Bind(mi, propertyExpresssion);
-             
-                //Handle null propagation
-                var testExpression = Expression.MakeBinary(ExpressionType.Equal, entityPropertyExpression, Expression.Constant(null));
-                var whenFalse = Expression.MemberInit(newInstance, new MemberBinding[] { binding });
-                var whenTrue = Expression.Constant(null, pi.PropertyType);
-                var result = Expression.Condition(testExpression, whenTrue, whenFalse, pi.PropertyType);
-                return result;
+
+                try
+                {
+                    //Handle null propagation
+                    var testExpression = Expression.MakeBinary(ExpressionType.Equal, entityPropertyExpression, Expression.Constant(null));
+                    var whenFalse = Expression.MemberInit(newInstance, new MemberBinding[] { binding });
+                    var whenTrue = Expression.Constant(null, pi.PropertyType);
+                    var result = Expression.Condition(testExpression, whenTrue, whenFalse, pi.PropertyType);
+                    return result;
+                }
+                catch (InvalidOperationException)
+                {
+                    /// types like dateTimeOffset will throw : The binary operator Equal is not defined for the types 'System.DateTimeOffset' and 'System.Object'.
+                    return Expression.MemberInit(newInstance, new MemberBinding[] { binding });
+                }
             }
         }
 

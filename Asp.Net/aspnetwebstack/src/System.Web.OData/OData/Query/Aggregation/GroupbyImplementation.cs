@@ -34,7 +34,10 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <returns>The results of the group by transformation as <see cref="IQueryable"/></returns>
         public IQueryable DoGroupBy(IQueryable query, ApplyGroupbyClause transformation, Type keyType, IEnumerable<LambdaExpression> propertiesToGroupByExpressions)
         {
-            var keySelector = this.GetGroupByProjectionLambda(transformation.SelectedStatements.ToArray(), keyType, propertiesToGroupByExpressions.ToArray());
+            var propToGroupBy = (propertiesToGroupByExpressions != null)
+                ? propertiesToGroupByExpressions.ToArray()
+                : null;
+            var keySelector = this.GetGroupByProjectionLambda(transformation.SelectedStatements.ToArray(), keyType, propToGroupBy);
             object comparer = keyType.GetProperty("ComparerInstance").GetValue(null);
             var results = ExpressionHelpers.GroupBy(query, keySelector, this.Context.ElementClrType, keyType, comparer);
 
