@@ -125,6 +125,11 @@ namespace Microsoft.OData.Core.UriParser
             return this.filterClause;
         }
 
+        /// <summary>
+        /// Parses a apply clause on the given full Uri, binding
+        /// the text into semantic nodes using the constructed mode.
+        /// </summary>
+        /// <returns>A <see cref="ApplyClause"/> representing the aggregation query.</returns>
         public ApplyClause ParseApply()
         {
             if (this.applyClause != null)

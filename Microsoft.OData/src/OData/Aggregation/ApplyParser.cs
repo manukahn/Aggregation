@@ -20,9 +20,10 @@ namespace Microsoft.OData.Core.Aggregation
         /// </summary>
         /// <param name="applyQuery">The apply query</param>
         /// <param name="oDataUriParserConfiguration"></param>
-        /// <param name="edmType">the edm type of the entity set</param>
+        /// <param name="edmType">the EDM type of the entity set</param>
         /// <param name="edmNavigationSource"></param>
-        /// <returns>an <see cref="ApplyClause"/> that contains a list of transformation clause objects as <see cref="List<Tuple<string,AggregationTransformationBase>>"/></returns>
+        /// <returns>an <see cref="ApplyClause"/> that contains a list of transformation clause objects as a List of Tuples 
+        /// where item1 is the transformation name and item2 is the relevant Clause object as <see cref="AggregationTransformationBase"/></returns>
         internal static ApplyClause ParseApplyImplementation(string applyQuery, ODataUriParserConfiguration oDataUriParserConfiguration, IEdmType edmType, IEdmNavigationSource edmNavigationSource)
         {
             var res = new ApplyClause();
@@ -55,8 +56,6 @@ namespace Microsoft.OData.Core.Aggregation
                         break;
                     default:
                         throw new ODataException("Unsupported aggregation transformation");
-                        break;
-
                 }
             }
             res.Transformations = trasformations;
@@ -65,13 +64,15 @@ namespace Microsoft.OData.Core.Aggregation
         }
 
         /// <summary>
-        /// Split the apply query that might contain a list of transformation into a list of single transformation queries 
+        /// Split the apply query that might contain a list of transformations into a list of single transformation queries as a list of tuples when item1 is the transformation query and item2 is the transformation name
         /// </summary>
         /// <param name="applyQuery">The apply query</param>
-        /// <returns>a list of <see cref="Tuple<string, string>"/> when item1 is the transformation query and item2 is the transformation name</returns>
+        /// <returns>a list of tuples when item1 is the transformation query and item2 is the transformation name</returns>
         private static List<Tuple<string, string>> GetTransformations(string applyQuery)
         {
             var transformationsInQuery = SplitQuery(applyQuery);
+
+            //If transformationsInQuery is empty there is only one transformation in the apply query
             if (transformationsInQuery.Count == 0)
             {
                 return new List<Tuple<string, string>>() { new Tuple<string, string>(applyQuery, GetTransformation(applyQuery)) };
@@ -138,10 +139,18 @@ namespace Microsoft.OData.Core.Aggregation
             };
         }
 
+        /// <summary>
+        /// Parse queries such as:
+        /// "aggregate(Amount with sum as Total)" and "aggregate(Amount mul Product/TaxRate with sum as Tax)"
+        /// </summary>
+        /// <param name="apply"></param>
+        /// <param name="query"></param>
+        /// <param name="oDataUriParserConfiguration"></param>
+        /// <param name="edmType"></param>
+        /// <param name="edmNavigationSource"></param>
+        /// <returns></returns>
         private static ApplyAggregateClause ParseAggregate(ApplyClause apply, string query,  ODataUriParserConfiguration oDataUriParserConfiguration, IEdmType edmType, IEdmNavigationSource edmNavigationSource)
         {
-            //aggregate(Amount with sum as Total)
-            //aggregate(Amount mul Product/TaxRate with sum as Tax)
             query = IsolateQuery(query, UriQueryConstants.AggregateTransformation);
             string aggregatableProperty;
             string aggregationMethod;
@@ -166,6 +175,14 @@ namespace Microsoft.OData.Core.Aggregation
             };
         }
 
+        /// <summary>
+        /// Get the name of the aggregated property, aggregation method and alias as defined in the query as <see cref="string"/>
+        /// </summary>
+        /// <param name="query">The query to parse</param>
+        /// <param name="validate">Check for syntax error</param>
+        /// <param name="alias">The alias found</param>
+        /// <param name="aggregationMethod">The aggregation method found</param>
+        /// <returns>The aggregated property, aggregation method and alias as defined in the query</returns>
         private static string GetAggregatableProperty(string query, bool validate, out string alias, out string aggregationMethod)
         {
             string aggregatableProperty;
@@ -205,11 +222,18 @@ namespace Microsoft.OData.Core.Aggregation
             }
         }
 
+        /// <summary>
+        /// Parse queries such as : "groupby(Customer/Name,Customer/ID,Product/Name,Account)" or "groupby((Customer/Country,Product/Name), aggregate(Amount with sum as Total))"
+        /// </summary>
+        /// <param name="apply"></param>
+        /// <param name="query"></param>
+        /// <param name="oDataUriParserConfiguration"></param>
+        /// <param name="edmType"></param>
+        /// <param name="edmNavigationSource"></param>
+        /// <returns></returns>
         private static ApplyGroupbyClause ParseGroupBy(ApplyClause apply, string query,
             ODataUriParserConfiguration oDataUriParserConfiguration, IEdmType edmType, IEdmNavigationSource edmNavigationSource)
         {
-            //groupby((Customer/Name,Customer/ID,Product/Name,Account))
-            //groupby((Customer/Country,Product/Name), aggregate(Amount with sum as Total))
             string selectQuery;
             ApplyAggregateClause aggregateClause = null;
 
@@ -245,9 +269,9 @@ namespace Microsoft.OData.Core.Aggregation
                                 edmType,
                                 edmNavigationSource)).ToList();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                //parsing of some expressions such as DateTimeOffset/Minute are not supported so ODataQueryOptionParser.ParseExpressionImplementation will fail
+                //parsing of some expressions (like property on enum such as DateTimeOffset/Minute) are not supported so ODataQueryOptionParser.ParseExpressionImplementation will fail
                 aggregatablePropertyExpressions = null;
             }
             
@@ -273,23 +297,27 @@ namespace Microsoft.OData.Core.Aggregation
                 query = query.Substring(trasformation.Length + 2);
             if (query.StartsWith(string.Format("{0}(",trasformation)))
                 query = query.Substring(trasformation.Length + 1);
-            //query = query.TrimEnd(')');
+           
             query = query.TrimOne(')');
 
             return query;
         }
 
         /// <summary>
-        /// Get list of all transformations positions in the query sorted by transformation name/>
+        /// Get list of all transformations positions in the query sorted by position as a 
+        /// list of tuples where item1 is the position and item2 is the transformation name
         /// </summary>
         /// <param name="applyQuery">The apply query</param>
-        /// <returns>list of <see cref="<Tuple<int, string>"/> where item1 is the position and item2 is the transformation name</returns>
+        /// <returns>list of tuples where item1 is the position and item2 is the transformation name</returns>
         private static List<Tuple<int, string>> SplitQuery(string applyQuery)
         {
-            List<Tuple<int, string>> transformationsInQuery = new List<Tuple<int, string>>();
+            var transformationsInQuery = new List<Tuple<int, string>>();
 
+            //Get all the aggregate transformation positions
             transformationsInQuery.AddRange(FindTransformationPosionsInQuery(applyQuery, UriQueryConstants.AggregateTransformation));
+            //Get all the group-by transformation positions
             transformationsInQuery.AddRange(FindTransformationPosionsInQuery(applyQuery, UriQueryConstants.GroupbyTransformation));
+            //Get all the filter transformation positions
             transformationsInQuery.AddRange(FindTransformationPosionsInQuery(applyQuery, UriQueryConstants.FilterTransformation));
 
             transformationsInQuery.Sort((x, y) =>
@@ -310,12 +338,12 @@ namespace Microsoft.OData.Core.Aggregation
 
 
         /// <summary>
-        /// return a list of transformation positions in the query. 
+        /// return a list of transformation positions in the query as a list of tuples where item1 is the position and item2 is the transformation name.
         /// A query can contain multiple instances of the same type of transformation.
         /// </summary>
         /// <param name="applyQuery">The whole apply query</param>
         /// <param name="trasformation">transformation name</param>
-        /// <returns>list of <see cref="<Tuple<int, string>"/> where item1 is the position and item2 is the transformation name</returns>
+        /// <returns>list of tuples where item1 is the position and item2 is the transformation name</returns>
         private static List<Tuple<int, string>> FindTransformationPosionsInQuery(string applyQuery, string trasformation)
         {
             List<Tuple<int, string>> resPoints = new List<Tuple<int, string>>();

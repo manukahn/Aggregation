@@ -49,7 +49,6 @@
     <Compile Include="Aggregation\AggregationTransientEntityAnnotation.cs" />
     <Compile Include="Aggregation\ApplyAggregateClause.cs" />
     <Compile Include="Aggregation\ApplyClause.cs" />
-    <Compile Include="Aggregation\ApplyExpandClause.cs" />
     <Compile Include="Aggregation\ApplyFilterClause.cs" />
     <Compile Include="Aggregation\ApplyGroupbyClause.cs" />
     <Compile Include="Aggregation\ApplyParser.cs" />
