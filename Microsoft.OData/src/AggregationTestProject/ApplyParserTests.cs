@@ -109,8 +109,8 @@ namespace AggregationTestProject
             {
                 return new TheoryDataSet<string>()
                 {
-                   "groupby((Product/TaxRate)",
-                   "groupby(Product/TaxRate))",
+                   "groupby(((Product/TaxRate)",
+                   "groupby(Product/TaxRate)))",
                 };
             }
         }
@@ -254,21 +254,22 @@ namespace AggregationTestProject
 
         [Scenario]
         [PropertyData("GetGroupByStringsWithWrongNumberOfParenthesis")]
-        public void GroupByStringsWithWrongNumberOfParenthesisThrowsODataException(string query)
+        public void GroupByStringsWithWrongNumberOfParenthesisPass2(string query)
         {
             var model =
                 Common.TestModelBuilder.CreateModel(new Type[] { typeof(Category), typeof(Product), typeof(Sales) });
             IEdmType edmType = model.FindDeclaredType(typeof(Sales).FullName);
             var config = new ODataUriParserConfiguration(model);
-            var exception = default(Exception);
+            var result = default(ApplyClause);
 
             "Given a message to parse {0}".Given(() => { });
             "When I try to parse".When(
                 () =>
                 {
-                    exception = Record.Exception(() => ApplyParser.ParseApplyImplementation(query, config, edmType, null));
+                    result = ApplyParser.ParseApplyImplementation(query, config, edmType, null);
                 });
-            "Then an OData exception is thrown".Then(() => exception.Should().BeOfType<Microsoft.OData.Core.ODataException>());
+            "the transformation is groupby".Then(
+                () => result.Transformations.First().Item2.Should().BeOfType<ApplyGroupbyClause>());
         }
         
         [Scenario]
