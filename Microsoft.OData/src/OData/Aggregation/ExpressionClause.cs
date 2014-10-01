@@ -7,10 +7,13 @@ using Microsoft.OData.Edm;
 
 namespace Microsoft.OData.Core.Aggregation
 {
+    /// <summary>
+    /// The result of parsing an OData Expression
+    /// </summary>
     public class ExpressionClause 
     {
         /// <summary>
-        /// The filter expression - this should evaluate to a single boolean value.
+        /// The expression - this should evaluate to a single value.
         /// </summary>
         private readonly SingleValueNode expression;
 
@@ -22,7 +25,7 @@ namespace Microsoft.OData.Core.Aggregation
         /// <summary>
         /// Creates a <see cref="FilterClause"/>.
         /// </summary>
-        /// <param name="expression">The filter expression - this should evaluate to a single boolean value. Cannot be null.</param>
+        /// <param name="expression">The expression - this should evaluate to a single value. Cannot be null.</param>
         /// <param name="rangeVariable">The parameter for the expression which represents a single value from the collection. Cannot be null.</param>
         /// <exception cref="System.ArgumentNullException">Throws if the input expression or rangeVariable is null.</exception>
         public ExpressionClause(SingleValueNode expression, RangeVariable rangeVariable)
@@ -35,7 +38,7 @@ namespace Microsoft.OData.Core.Aggregation
         }
 
         /// <summary>
-        /// Gets the filter expression - this should evaluate to a single boolean value.
+        /// Gets the expression - this should evaluate to a single value.
         /// </summary>
         public SingleValueNode Expression
         {

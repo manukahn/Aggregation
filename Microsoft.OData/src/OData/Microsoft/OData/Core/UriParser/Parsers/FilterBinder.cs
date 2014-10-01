@@ -81,32 +81,7 @@ namespace Microsoft.OData.Core.UriParser.Parsers
             return filterNode;
         }
 
-
-        /// <summary>
-        /// Binds the given filter token.
-        /// </summary>
-        /// <param name="filter">The filter token to bind.</param>
-        /// <returns>A FilterNode with the given path linked to it (if provided).</returns>
-        internal ExpressionClause BindExpression(QueryToken filter)
-        {
-            ExceptionUtils.CheckArgumentNotNull(filter, "filter");
-
-            QueryNode expressionNode = this.bindMethod(filter);
-
-            SingleValueNode expressionResultNode = expressionNode as SingleValueNode;
-            if (expressionResultNode == null ||
-                (expressionResultNode.TypeReference != null && !expressionResultNode.TypeReference.IsODataPrimitiveTypeKind()))
-            {
-                throw new ODataException(ODataErrorStrings.MetadataBinder_FilterExpressionNotSingleValue);
-            }
-
-            // The type may be null here if the query statically represents the null literal or an open property.
-            IEdmTypeReference expressionResultType = expressionResultNode.TypeReference;
-            ExpressionClause res = new ExpressionClause(expressionResultNode, this.state.ImplicitRangeVariable);
-
-            return res;
-        }
-
+        
         /// <summary>
         /// Binds the given member token.
         /// </summary>
@@ -125,9 +100,8 @@ namespace Microsoft.OData.Core.UriParser.Parsers
             }
 
             // The type may be null here if the query statically represents the null literal or an open property.
-            IEdmTypeReference expressionResultType = expressionResultNode.TypeReference;
             ExpressionClause res = new ExpressionClause(expressionResultNode, this.state.ImplicitRangeVariable);
-
+            
             return res;
         }
     }
