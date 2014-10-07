@@ -23,10 +23,7 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
 
         public static void Init()
         {
-            //TODO: Delete this. The uri should be defined in app settings under the key: AggregationMethodsFileUri
-            string externalAssemblyUri = @"https://manupoc.blob.core.windows.net/code/CustomAggregationMethods.dll";
-
-            var handler = new ExternalMethodsHandler() { RemoteFileUri = new Uri(externalAssemblyUri) };
+            var handler = new ExternalMethodsHandler();
             handler.RegisterExternalMethods();
         }
     }

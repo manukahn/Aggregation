@@ -247,14 +247,18 @@ namespace System.Web.OData.OData.Query
         /// <summary>
         /// Calculate a MD5 hash 
         /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
+        /// <param name="input">string to hash</param>
+        /// <returns>Hash encoded as string</returns>
         private static string CalculateMD5Hash(string input)
         {
+            byte[] hash;
+
             // step 1, calculate MD5 hash from input
-            MD5 md5 = System.Security.Cryptography.MD5.Create();
-            byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
-            byte[] hash = md5.ComputeHash(inputBytes);
+            using (MD5 md5 = MD5.Create())
+            {
+                byte[] inputBytes = Encoding.ASCII.GetBytes(input);
+                hash = md5.ComputeHash(inputBytes);
+            }
 
             // step 2, convert byte array to hex string
             StringBuilder sb = new StringBuilder();
