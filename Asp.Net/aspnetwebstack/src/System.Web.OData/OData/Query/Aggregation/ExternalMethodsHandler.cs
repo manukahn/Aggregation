@@ -13,13 +13,14 @@ using System.Web.OData.OData.Query.Aggregation.SamplingMethods;
 
 namespace System.Web.OData.OData.Query.Aggregation
 {
-
     public interface IExternalMethodHandler
     {
         int RegisterExternalMethods();
     }
 
-
+    /// <summary>
+    /// Register custom aggregation and sampling method located in a remote assembly
+    /// </summary>
     public class ExternalMethodsHandler : IExternalMethodHandler
     {
         public int RegisterExternalMethods()
@@ -32,10 +33,15 @@ namespace System.Web.OData.OData.Query.Aggregation
             return RegisterAggregationMethods() + RegisterSamplingMethods();
         }
 
+        /// <summary>
+        /// Gets or sets the location of the remote assembly that contain custom aggregation and sampling methods 
+        /// </summary>
         public Uri RemoteFileUri { get; set; }
 
+        /// <summary>
+        /// Register custom aggregation and sampling method located in a remote assembly
+        /// </summary>
         public Assembly AggregationMethodsAssembly { get; private set; }
-
        
         private int RegisterSamplingMethods()
         {

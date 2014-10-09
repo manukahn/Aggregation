@@ -78,15 +78,7 @@ namespace System.Web.OData.OData.Query
         /// </summary>
         public ApplyClause ApplyClause
         {
-            get
-            {
-                if (_applyClause == null)
-                {
-                    _applyClause = _queryOptionParser.ParseApply();
-                }
-
-                return _applyClause;
-            }
+            get { return _applyClause ?? (_applyClause = _queryOptionParser.ParseApply()); }
         }
         
         /// <summary>
