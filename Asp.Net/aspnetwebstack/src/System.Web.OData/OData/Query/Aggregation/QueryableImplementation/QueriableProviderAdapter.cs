@@ -99,7 +99,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                 int numberOfComputedElements = MaxCollectionSize;
                 if (baseCollections.Values.First().LimitReached == false)
                 {
-                    numberOfComputedElements = baseCollections.Values.First().IndexInOriginalQueryable%MaxCollectionSize;
+                    numberOfComputedElements = baseCollections.Values.First().IndexInOriginalQueryable % MaxCollectionSize;
                 }
                 tempResults.Add(new Tuple<object, int>(result, numberOfComputedElements));
                 realRecord = baseCollections.Values.FirstOrDefault(record => record.LimitReached.HasValue && record.LimitReached.Value == true);
@@ -205,7 +205,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                 if (!string.IsNullOrEmpty(unsupportedMethod))
                 {
                     UnsupportedMethodsPerProvider.AddOrUpdate(providerName,
-                        (_) => new List<string>() {unsupportedMethod},
+                        (_) => new List<string>() { unsupportedMethod },
                         (_, lst) =>
                         {
                             lst.Add(unsupportedMethod);

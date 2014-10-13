@@ -118,7 +118,9 @@ namespace System.Web.OData.OData.Query
             }
 
             var maxResults = querySettings.PageSize ?? 2000;
-           
+
+            // Call InterceptingProvider.Intercept that will create a new <see cref="InterceptingProvider"/> and set its visitors. 
+            // InterceptingProvider will wrap the actual IQueryable to implement unsupported operations in memory.
             var mi = _Intercept_mi.MakeGenericMethod(Context.ElementClrType);
             IQueryable results = mi.Invoke(null, new Object[] { query, maxResults, null }) as IQueryable;
 
@@ -227,8 +229,7 @@ namespace System.Web.OData.OData.Query
                 new Tuple<Type, string>(aliasType, alias)
             };
             var resType = AggregationTypesGenerator.CreateType(properties.Distinct(new TypeStringTupleComapere()).ToList(), Context, true);
-            var elementType = AggregationTypesGenerator.CreateEdmSechmaElement(resType, Context, true);
-
+            
             var objToProject = Activator.CreateInstance(resType);
             var pi = resType.GetProperty(alias);
             pi.SetValue(objToProject, dataToProject);
@@ -251,13 +252,13 @@ namespace System.Web.OData.OData.Query
             List<object> result = new List<object>();
             var keyProperties = keyType.GetProperties();
             var projectionType = GetAggregationResultProjectionType(groupByTrasformation, keyType);
-            var elementType = AggregationTypesGenerator.CreateEdmSechmaElement(projectionType, context, true);
-            var model = (EdmModel)this.Context.Model;
-            if (model.FindDeclaredType(projectionType.FullName) == null)
-            {
-                //TODO: should be added as transient entity. I suspect that we have to implement this as well as I found no support for  transient entities in the current stack.
-                model.AddElement(elementType);
-            }
+            //var elementType = AggregationTypesGenerator.CreateEdmSechmaElement(projectionType, context, true);
+            //var model = (EdmModel)this.Context.Model;
+            //if (model.FindDeclaredType(projectionType.FullName) == null)
+            //{
+            //    //TODO: should be added as transient entity. I suspect that we have to implement this as well as I found no support for  transient entities in the current stack.
+            //    model.AddElement(elementType);
+            //}
 
             int i = 0;
             foreach (var key in keys)

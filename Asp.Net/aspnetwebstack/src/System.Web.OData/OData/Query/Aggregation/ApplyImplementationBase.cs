@@ -65,7 +65,7 @@ namespace System.Web.OData.OData.Query.Aggregation
 
 
         /// <summary>
-        /// create a LambdaExpression expression that defines a projection statement such as: Expression<Func<Sales, double>> projectionLambda = s => s.Amount;
+        /// create a LambdaExpression expression that defines a projection statement such as: Expression{Func{Sales, double}} projectionLambda = s => s.Amount;
         /// </summary>
         /// <param name="entityType">The entity type to from which to project</param>
         /// <param name="propertyPath">The property path to project</param>
@@ -78,7 +78,7 @@ namespace System.Web.OData.OData.Query.Aggregation
         }
 
         /// <summary>
-        /// create an expression of a call to a static methode such as: Expression<Func<Sales, double>> <code>Lambda = s => s.Method();</code>
+        /// create an expression of a call to a static methode such as: Expression{Func{Sales, double}} <code>Lambda = s => s.Method();</code>
         /// </summary>
         /// <param name="entityType">The entity type to from which to project</param>
         /// <param name="method">the method to call</param>
@@ -112,9 +112,7 @@ namespace System.Web.OData.OData.Query.Aggregation
 
             if (!propertyPath.Contains('/'))
             {
-                return ((selectedProperyExpression != null)
-                    ? selectedProperyExpression
-                    : GetProjectionExpression(originalPropertyPath, entityParam));
+                return (selectedProperyExpression ?? GetProjectionExpression(originalPropertyPath, entityParam));
             }
             else
             {

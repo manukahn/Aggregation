@@ -159,7 +159,6 @@ namespace System.Web.OData.OData.Query.Aggregation
             Contract.Assert(transformation.SelectedStatements.Any());
 
             var keyProperties = new List<Tuple<Type, string>>();
-
             var selectedStatementsDictionary = GetSelectedStatementsDictionary(transformation.SelectedStatements);
 
             foreach (var statement in selectedStatementsDictionary)
@@ -196,6 +195,12 @@ namespace System.Web.OData.OData.Query.Aggregation
         }
 
 
+        /// <summary>
+        /// Continue the recursive operation of creating the Group-By key
+        /// </summary>
+        /// <param name="declaringType">The type based on which we are going to create the new type</param>
+        /// <param name="segments">The select segments that declare what to create</param>
+        /// <returns>A new type</returns>
         private Type GenerateComplexType(Type declaringType, IEnumerable<string> segments)
         {
             Contract.Assert(declaringType != null);
@@ -236,7 +241,13 @@ namespace System.Web.OData.OData.Query.Aggregation
             return AggregationTypesGenerator.CreateType(keyProperties.Distinct(new TypeStringTupleComapere()).ToList(), Context, false);
         }
 
-
+        /// <summary>
+        /// Create a dictionary of all the selected segments based on their roots. 
+        /// For example the list "Amount, Customer/Name, Customer/Address/Street" will create the following dictionary:
+        /// (Amount, {Amount}), (Customer, {Name, Address/Street}) 
+        /// </summary>
+        /// <param name="selectedStatement"></param>
+        /// <returns></returns>
         private static Dictionary<string, IEnumerable<string>> GetSelectedStatementsDictionary(IEnumerable<string> selectedStatement)
         {
             var selectedStatementsDictionary = new Dictionary<string, IEnumerable<string>>();
@@ -263,8 +274,8 @@ namespace System.Web.OData.OData.Query.Aggregation
                     {
                         return value.Substring(value.IndexOf('/') + 1);
                     }
-                }
-            );
+                });
+
             foreach (var g in grouping)
             {
                 selectedStatementsDictionary.Add(g.Key, g.ToList());
@@ -275,7 +286,7 @@ namespace System.Web.OData.OData.Query.Aggregation
 
 
        /// <summary>
-       /// Create a <see cref="LambdaExpression"/> such as: Expression<Func<Sales, keyType>> projectionLambda = s => new KeyType(Amount = s.Amount, Id=s.Id)
+       /// Create a <see cref="LambdaExpression"/> such as: Expression{Func{Sales, keyType}} projectionLambda = s => new KeyType(Amount = s.Amount, Id=s.Id)
        /// </summary>
        /// <param name="selectStatements">The selected statements creating the key of the group-by operation</param>
        /// <param name="keyType">The type of the key of the group-by operation</param>

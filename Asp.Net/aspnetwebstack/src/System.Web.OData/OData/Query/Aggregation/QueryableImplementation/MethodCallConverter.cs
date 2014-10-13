@@ -104,7 +104,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         }
 
         /// <summary>
-        /// Call the generic method GetRealQueriable<T>
+        /// Call the generic method GetRealQueriable of T that will Enumerate a collection expressed in the <see cref="MethodCallExpression"/> and bring it to memory
         /// </summary>
         /// <param name="m">expression to enumerate</param>
         /// <param name="elementType">The type parameter to use</param>
