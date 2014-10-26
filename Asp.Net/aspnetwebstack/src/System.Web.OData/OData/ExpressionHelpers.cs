@@ -136,7 +136,7 @@ namespace System.Web.OData
             newArgs.Add(skipQuery);
 
             newArgs.AddRange(m.Arguments.Skip(1)); // paste the original arguments (except the first) to the new list
-            return Expression.Call(m.Object, m.Method, newArgs); /// create a new <see cref="MethodCallExpression"/>
+            return Expression.Call(m.Object, m.Method, newArgs); // create a new <see cref="MethodCallExpression"/>
         }
 
 

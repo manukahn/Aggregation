@@ -252,14 +252,7 @@ namespace System.Web.OData.OData.Query
             List<object> result = new List<object>();
             var keyProperties = keyType.GetProperties();
             var projectionType = GetAggregationResultProjectionType(groupByTrasformation, keyType);
-            //var elementType = AggregationTypesGenerator.CreateEdmSechmaElement(projectionType, context, true);
-            //var model = (EdmModel)this.Context.Model;
-            //if (model.FindDeclaredType(projectionType.FullName) == null)
-            //{
-            //    //TODO: should be added as transient entity. I suspect that we have to implement this as well as I found no support for  transient entities in the current stack.
-            //    model.AddElement(elementType);
-            //}
-
+            
             int i = 0;
             foreach (var key in keys)
             {

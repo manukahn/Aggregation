@@ -21,9 +21,12 @@ using System.Web.Http;
 
 namespace System.Web.OData.OData.Query
 {
-    public static class AggregationDynamicTypeCache
+    /// <summary>
+    /// Collection for all the dynamic type that were generated.
+    /// </summary>
+    public static class AggregationDynamicTypeCollection
     {
-        static AggregationDynamicTypeCache()
+        static AggregationDynamicTypeCollection()
         {
             AppDomain.CurrentDomain.AssemblyResolve += (sender, e) =>
             {
@@ -40,7 +43,11 @@ namespace System.Web.OData.OData.Query
         private static ConcurrentDictionary<string, object> syncLocks = new ConcurrentDictionary<string, object>();
         private static Dictionary<string, Assembly> assemblies = new Dictionary<string, Assembly>();
 
-        public static void AddAssembly(Assembly newAssembly)
+        /// <summary>
+        /// Add an assembly to the collection.
+        /// </summary>
+        /// <param name="newAssembly">The new assembly to add.</param>
+        internal static void AddAssembly(Assembly newAssembly)
         {
             if (!assemblies.ContainsKey(newAssembly.FullName))
             {
@@ -48,24 +55,24 @@ namespace System.Web.OData.OData.Query
             }
         }
 
-        public static object GetLock(string key)
+        internal static object GetLock(string key)
         {
             return syncLocks.GetOrAdd(key, _ => new object());
         }
     }
-    
+
     /// <summary>
-    /// Helper class for creating new types dynamically 
+    /// Helper class for creating new types dynamically. 
     /// </summary>
     public class AggregationTypesGenerator
     {
         /// <summary>
-        /// Creates a new type dynamically and register it in the EDM model
+        /// Creates a new type dynamically and register it in the EDM model.
         /// </summary>
-        /// <param name="properties">List of properties for the new type</param>
-        /// <param name="context">The OData query context</param>
-        /// <param name="asEdmEntity">Should the new type be defined as entity or complex type in the EDM model</param>
-        /// <returns>The new generated type</returns>
+        /// <param name="properties">List of properties for the new type.</param>
+        /// <param name="context">The OData query context.</param>
+        /// <param name="asEdmEntity">Should the new type be defined as entity or complex type in the EDM model.</param>
+        /// <returns>The new generated type.</returns>
         public static Type CreateType(List<Tuple<Type, string>> properties, ODataQueryContext context, bool asEdmEntity)
         {
             Contract.Assert(properties != null);
@@ -76,12 +83,12 @@ namespace System.Web.OData.OData.Query
             var tempPath = Path.GetTempPath();
             string outputfile = Path.Combine(tempPath, typeName + ".dll");
 
-            var lockHandle = AggregationDynamicTypeCache.GetLock(typeName);
+            var lockHandle = AggregationDynamicTypeCollection.GetLock(typeName);
 
             lock (lockHandle)
             {
                 Type result;
-                if (AggregationDynamicTypeCache.ExistingTypes.TryGetValue(typeName, out result))
+                if (AggregationDynamicTypeCollection.ExistingTypes.TryGetValue(typeName, out result))
                 {
                     return result;
                 }
@@ -123,7 +130,7 @@ namespace System.Web.OData.OData.Query
                 }
 
                 Assembly assembly = results.CompiledAssembly;
-                AggregationDynamicTypeCache.AddAssembly(assembly);
+                AggregationDynamicTypeCollection.AddAssembly(assembly);
 
                 var newType = assembly.GetType("ODataAggregation.DynamicTypes." + typeName);
 
@@ -131,28 +138,29 @@ namespace System.Web.OData.OData.Query
                 {
                     var model = (EdmModel)context.Model;
                     IEdmSchemaElement entityType = CreateEdmSechmaElement(newType, context, asEdmEntity);
-                    //TODO: should be added as transient entity. 
-                    //I suspect that we have to implement this as well as I found no support for  transient entities in the current stack.
-                    // AggregationTransientEntityAnnotation was created to mark the entity as transient.
                     model.AddElement(entityType);
 
-                    if (asEdmEntity)
-                    {
-                        model.SetAnnotationValue(entityType,
-                            new AggregationTransientEntityAnnotation() {EntityState = "TransientEntity"});
-                    }
+                    // TODO: should be added as transient entity. 
+                    // I suspect that we have to implement this as well as I found no support for  transient entities in the current stack.
+                    // AggregationTransientEntityAnnotation was created to mark the entity as transient.
+                    // if (asEdmEntity)
+                    // {
+                    //    model.SetAnnotationValue(entityType,
+                    //        new AggregationTransientEntityAnnotation() { EntityState = "TransientEntity" });
+                    // }
                 }
+
                 return newType;
             }
         }
 
         /// <summary>
-        /// Create a entry in the EDM document for this new type 
+        /// Create a entry in the EDM document for this new type. 
         /// </summary>
-        /// <param name="clrType">The new type that was generated</param>
-        /// <param name="context">The OData context</param>
-        /// <param name="asEdmEntity">Determines whether to create an entity or a complex type</param>
-        /// <returns>The new EDM schema element as a <see cref="IEdmSchemaElement"/></returns>
+        /// <param name="clrType">The new type that was generated.</param>
+        /// <param name="context">The OData context.</param>
+        /// <param name="asEdmEntity">Determines whether to create an entity or a complex type.</param>
+        /// <returns>The new EDM schema element as a <see cref="IEdmSchemaElement"/>.</returns>
         public static IEdmSchemaElement CreateEdmSechmaElement(Type clrType, ODataQueryContext context, bool asEdmEntity)
         {
             Contract.Assert(clrType != null);
@@ -168,16 +176,16 @@ namespace System.Web.OData.OData.Query
 
             entryEdmType = new EdmComplexType("ODataAggregation.DynamicTypes", clrType.Name);
             CreateSchemaType(clrType, context, entryEdmType);
-            return entryEdmType as IEdmSchemaElement; 
+            return entryEdmType as IEdmSchemaElement;
         }
-       
+
 
         /// <summary>
-        /// Implement the creation of an EDM Entity Type or EDM Complex Type
+        /// Implement the creation of an EDM Entity Type or EDM Complex Type.
         /// </summary>
-        /// <param name="clrType">The CLR type of the new schema element to create</param>
-        /// <param name="context">The query context</param>
-        /// <param name="entryEdmType">The new Schema element</param>
+        /// <param name="clrType">The CLR type of the new schema element to create.</param>
+        /// <param name="context">The query context.</param>
+        /// <param name="entryEdmType">The new Schema element.</param>
         private static void CreateSchemaType(Type clrType, ODataQueryContext context, EdmStructuredType entryEdmType)
         {
             foreach (var pi in clrType.GetProperties())
@@ -219,7 +227,7 @@ namespace System.Web.OData.OData.Query
                         }
                         else
                         {
-                            throw new InvalidOperationException(string.Format("Could not find EDM type of {0}",pi.PropertyType.FullName));
+                            throw new InvalidOperationException(string.Format("Could not find EDM type of {0}", pi.PropertyType.FullName));
                         }
                     }
                 }
@@ -229,9 +237,9 @@ namespace System.Web.OData.OData.Query
         /// <summary>
         /// Compute the class name that should be created. A class name contains a hash of the combination of its properties.
         /// </summary>
-        /// <param name="properties"></param>
-        /// <param name="asEdmEntity"></param>
-        /// <returns></returns>
+        /// <param name="properties">The properties of the new type.</param>
+        /// <param name="asEdmEntity">Should the new type be registered as an EDM entity.</param>
+        /// <returns>The new type name.</returns>
         private static string GenerateClassName(List<Tuple<Type, string>> properties, bool asEdmEntity)
         {
             string prefix = asEdmEntity ? "Entity" : "ComplexType";
@@ -241,14 +249,15 @@ namespace System.Web.OData.OData.Query
             {
                 valueToHash.Append(string.Format("{0}-{1}", property.Item1, property.Item2));
             }
+
             return prefix + CalculateMD5Hash(valueToHash.ToString());
         }
-        
+
         /// <summary>
-        /// Calculate a MD5 hash 
+        /// Calculate a MD5 hash. 
         /// </summary>
-        /// <param name="input">string to hash</param>
-        /// <returns>Hash encoded as string</returns>
+        /// <param name="input">String to hash.</param>
+        /// <returns>Hash encoded as string.</returns>
         private static string CalculateMD5Hash(string input)
         {
             byte[] hash;
@@ -261,20 +270,21 @@ namespace System.Web.OData.OData.Query
             }
 
             // step 2, convert byte array to hex string
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             for (int i = 0; i < hash.Length; i++)
             {
                 sb.Append(hash[i].ToString("X2"));
             }
+
             return "DynamicType" + sb.ToString();
         }
 
         /// <summary>
-        /// Create the code of the new type
+        /// Create the code of the new type.
         /// </summary>
-        /// <param name="typeName"></param>
-        /// <param name="properties"></param>
-        /// <returns></returns>
+        /// <param name="typeName">The type name.</param>
+        /// <param name="properties">a collection of properties.</param>
+        /// <returns>The code of the new type.</returns>
         private static string CreateCode(string typeName, List<Tuple<Type, string>> properties)
         {
             string classTemplate = @"namespace ODataAggregation.DynamicTypes {{ public class {0} {{ {1} {2} }} }}";
@@ -291,11 +301,11 @@ namespace System.Web.OData.OData.Query
         }
 
         /// <summary>
-        /// Compose an Equals and a GetHashCode for the new type
+        /// Compose an Equals and a GetHashCode for the new type.
         /// </summary>
-        /// <param name="typeName"></param>
-        /// <param name="properties"></param>
-        /// <returns></returns>
+        /// <param name="typeName">The new type name</param>
+        /// <param name="properties">a collection of properties.</param>
+        /// <returns>The code for Equals and GetHashCode</returns>
         private static string CreateEqualsMethods(string typeName, params Tuple<Type, string>[] properties)
         {
             StringBuilder sb = new StringBuilder();
@@ -330,10 +340,10 @@ namespace System.Web.OData.OData.Query
         }
 
         /// <summary>
-        /// Add a property of type IEqualityComparer to the new type
+        /// Add a property of type IEqualityComparer to the new type.
         /// </summary>
-        /// <param name="typeName"></param>
-        /// <returns></returns>
+        /// <param name="typeName">The new type name.</param>
+        /// <returns>The code for the IEqualityComparer property.</returns>
         private static string CreateComparerProperty(string typeName)
         {
             return
@@ -343,20 +353,20 @@ namespace System.Web.OData.OData.Query
         }
 
         /// <summary>
-        /// Compose an implementation of IEqualityComparer
+        /// Compose an implementation of IEqualityComparer.
         /// </summary>
-        /// <param name="typeName"></param>
-        /// <returns></returns>
+        /// <param name="typeName">The new type name.</param>
+        /// <returns>The code to create a comparer class.</returns>
         private static string CreateComparerClass(string typeName)
         {
             return string.Format(@"public class Comparer : System.Collections.Generic.IEqualityComparer<{0}>{{ public bool Equals({0} x, {0} y) {{  if ((x == null) && (y == null)){{ return true; }}  if ((x == null) || (y == null)) {{ return false; }}  return x.Equals(y); }} public int GetHashCode({0} obj) {{ return obj.GetHashCode(); }} }}", typeName);
         }
-        
+
         /// <summary>
-        /// Helper method that maps a primitive type to <see cref="EdmPrimitiveTypeKind"/>
+        /// Helper method that maps a primitive type to <see cref="EdmPrimitiveTypeKind"/>.
         /// </summary>
-        /// <param name="t"></param>
-        /// <returns></returns>
+        /// <param name="t">Type to explore</param>
+        /// <returns>The EdmPrimitiveTypeKind.</returns>
         private static EdmPrimitiveTypeKind GetPrimitiveTypeKind(Type t)
         {
             Contract.Assert(t != null);
@@ -382,11 +392,11 @@ namespace System.Web.OData.OData.Query
         }
 
         /// <summary>
-        /// Find the <see cref="IEdmTypeReference"/> of an <see cref="Enum"/> property
+        /// Find the <see cref="IEdmTypeReference"/> of an <see cref="Enum"/> property.
         /// </summary>
-        /// <param name="type">the CLR type of the property</param>
-        /// <param name="context">The query context</param>
-        /// <returns></returns>
+        /// <param name="type">The CLR type of the property.</param>
+        /// <param name="context">The query context.</param>
+        /// <returns>An <see cref="IEdmTypeReference"/>of an enum property.</returns>
         private static IEdmTypeReference GetEnumTypeKind(Type type, ODataQueryContext context)
         {
             var res = context.Model.FindDeclaredType(type.FullName);
@@ -415,6 +425,6 @@ namespace System.Web.OData.OData.Query
 
             return null;
         }
-      
+
     }
 }

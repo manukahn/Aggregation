@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace System.Web.OData.Extensions
 {
+    /// <summary>
+    /// Extensions methods for collections
+    /// </summary>
     public static class CollectionExtesions
     {
         /// <summary>

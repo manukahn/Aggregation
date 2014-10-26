@@ -123,7 +123,6 @@ namespace System.Web.OData.Query
 
                 return _selectExpandClause;
             }
-            set { _selectExpandClause = value; }
         }
 
         /// <summary>

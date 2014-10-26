@@ -27,7 +27,7 @@ namespace System.Web.OData.OData.Query.Aggregation.SamplingMethods
     }
 
     /// <summary>
-    /// Mark that a class is a sampling method implementation
+    /// Mark that a class is a sampling method implementation.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public class SamplingMethodAttribute : Attribute

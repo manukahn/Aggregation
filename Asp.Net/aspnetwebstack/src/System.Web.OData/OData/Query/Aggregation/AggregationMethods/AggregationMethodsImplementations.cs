@@ -21,6 +21,9 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
             AggregationMethodsImplementations.RegisterAggregationImplementation("countdistinct", new CountDistinctAggregation());
         }
 
+        /// <summary>
+        /// RegisterExternalMethods.
+        /// </summary>
         public static void Init()
         {
             var handler = new ExternalMethodsHandler();

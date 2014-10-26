@@ -43,7 +43,7 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// </summary>
         /// <param name="temporaryResults">The results to combine, as <see cref="<Tuple<object, int>"/> when item1 is the result 
         /// and item2 is the number of elements that produced this temporary result</param>
-        /// <returns>The final result</returns>
+        /// <returns>The final result.</returns>
         public override object CombineTemporaryResults(List<Tuple<object, int>> temporaryResults)
         {
             if (temporaryResults.Count() == 1)

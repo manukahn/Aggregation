@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using System.Web.OData.Query;
 using Microsoft.OData.Core.UriParser;
 using Microsoft.OData.Core.UriParser.Semantic;
-using Newtonsoft.Json.Schema;
 
 namespace System.Web.OData.OData.Query.Aggregation
 {
+    /// <summary>
+    /// Implementation of Filter Aggregation transformation
+    /// </summary>
     public class FilterImplementation : ApplyImplementationBase
     {
         /// <summary>
@@ -17,6 +15,15 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// </summary>
         public ODataQueryContext Context { get; set; }
 
+
+        /// <summary>
+        /// Do the filter operation
+        /// </summary>
+        /// <param name="query">The IQueryable to filter.</param>
+        /// <param name="transformation">The filter query which was parsed.</param>
+        /// <param name="querySettings">ODataQuerySettings.</param>
+        /// <param name="queryOptionParser">The parser.</param>
+        /// <returns>The filter result.</returns>
         public IQueryable DoFilter(IQueryable query, ApplyFilterClause transformation, ODataQuerySettings querySettings, ODataQueryOptionParser queryOptionParser)
         {
             string rawValue = transformation.RawQueryString;

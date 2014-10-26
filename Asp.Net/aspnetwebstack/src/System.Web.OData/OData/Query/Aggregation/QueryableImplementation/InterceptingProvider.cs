@@ -4,7 +4,6 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-
 namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
 {
     /// <summary>
@@ -15,6 +14,14 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
     {
         private IQueryProvider _underlyingProvider;
         private Func<Expression, Expression>[] _visitors;
+
+        private InterceptingProvider(
+           IQueryProvider underlyingQueryProvider,
+           params Func<Expression, Expression>[] visitors)
+        {
+            this._underlyingProvider = underlyingQueryProvider;
+            this._visitors = visitors;
+        }
 
         /// <summary>
         /// Gets or Sets a function that combines temporary results into one final result. 
@@ -27,22 +34,14 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         /// </summary>
         public int MaxResults { get; private set; }
 
-        private InterceptingProvider(
-            IQueryProvider underlyingQueryProvider,
-            params Func<Expression, Expression>[] visitors)
-        {
-            this._underlyingProvider = underlyingQueryProvider;
-            this._visitors = visitors;
-        }
-
         /// <summary>
-        /// Create a new <see cref="InterceptingProvider"/> and set its visitors
+        /// Create a new <see cref="InterceptingProvider"/> and set its visitors.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="underlyingQuery"></param>
-        /// <param name="maxResults"></param>
-        /// <param name="visitors"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">Element type.</typeparam>
+        /// <param name="underlyingQuery">The wrapped IQueriable.</param>
+        /// <param name="maxResults">The max number of results in a batch.</param>
+        /// <param name="visitors">The visitors to apply.</param>
+        /// <returns>The wrapped IQueriable</returns>
         public static IQueryable<T> Intercept<T>(
             IQueryable<T> underlyingQuery, int maxResults,
             params ExpressionVisitor[] visitors)
@@ -62,13 +61,13 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         }
 
         /// <summary>
-        /// Create a new <see cref="InterceptingProvider"/> and set its visitors
+        /// Create a new <see cref="InterceptingProvider"/> and set its visitors.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="underlyingQuery"></param>
-        /// <param name="maxResults"></param>
-        /// <param name="visitors"></param>
-        /// <returns></returns>
+        /// <typeparam name="T">Element type.</typeparam>
+        /// <param name="underlyingQuery">The wrapped IQueriable.</param>
+        /// <param name="maxResults">The max number of results in a batch.</param>
+        /// <param name="visitors">The visitors to apply.</param>
+        /// <returns>The wrapped IQueriable</returns>
         public static IQueryable<T> Intercept<T>(
             IQueryable<T> underlyingQuery, int maxResults,
             params Func<Expression, Expression>[] visitors)
@@ -83,13 +82,13 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         /// <summary>
         /// Execute a an expression and return an enumerator as a result
         /// </summary>
-        /// <typeparam name="TResult">Type of the result</typeparam>
-        /// <param name="expression">The expression tree to execute</param>
-        /// <returns>an enumerator of the result</returns>
+        /// <typeparam name="TElement">Type of the result.</typeparam>
+        /// <param name="expression">The expression tree to execute.</param>
+        /// <returns>An enumerator of the result.</returns>
         public IEnumerator<TElement> ExecuteQuery<TElement>(
             Expression expression)
         {
-            return _underlyingProvider.CreateQuery<TElement>(InterceptExpr(expression)).GetEnumerator();
+            return this._underlyingProvider.CreateQuery<TElement>(this.InterceptExpr(expression)).GetEnumerator();
         }
 
         /// <inheritdoc />
@@ -109,41 +108,41 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             ConstructorInfo ci = qt.GetConstructor(
                 BindingFlags.NonPublic | BindingFlags.Instance,
                 null,
-                new Type[] {  
-                typeof(InterceptingProvider), 
-                typeof(Expression) 
-            },
+                new Type[] 
+                {  
+                    typeof(InterceptingProvider), 
+                    typeof(Expression) 
+                },
                 null);
 
             return (IQueryable)ci.Invoke(args);
         }
 
         /// <summary>
-        /// Execute the query. If it is not supported by the underlying query provider, transform it to be executed on a memory collection 
+        /// Execute the query. If it is not supported by the underlying query provider, transform it to be executed on a memory collection. 
         /// </summary>
-        /// <typeparam name="TResult">Type of the result</typeparam>
-        /// <param name="expression">The expression tree to execute</param>
-        /// <returns>The expression execution result</returns>
+        /// <typeparam name="TResult">Type of the result.</typeparam>
+        /// <param name="expression">The expression tree to execute.</param>
+        /// <returns>The expression execution result.</returns>
         public TResult Execute<TResult>(Expression expression)
         {
             try
             {
-                return this._underlyingProvider.Execute<TResult>(InterceptExpr(expression));
+                return this._underlyingProvider.Execute<TResult>(this.InterceptExpr(expression));
             }
             catch (NotSupportedException ex)
             {
-                var adapter = new QueriableProviderAdapter() { Provider = _underlyingProvider, MaxCollectionSize = MaxResults };
-                var res = adapter.Eval<TResult>(expression, Combiner);
+                var adapter = new QueriableProviderAdapter() { Provider = this._underlyingProvider, MaxCollectionSize = this.MaxResults };
+                var res = adapter.Eval<TResult>(expression, this.Combiner);
                 return res;
             }
-            
         }
 
         /// <summary>
-        /// Execute the query. If it is not supported by the underlying query provider, transform it to be executed on a memory collection
+        /// Execute the query. If it is not supported by the underlying query provider, transform it to be executed on a memory collection.
         /// </summary>
-        /// <param name="expression">The expression tree to execute</param>
-        /// <returns>The expression execution result</returns>
+        /// <param name="expression">The expression tree to execute.</param>
+        /// <returns>The expression execution result.</returns>
         public object Execute(Expression expression)
         {
             try
@@ -156,24 +155,26 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                 var res = adapter.Eval(expression, Combiner);
                 return res;
             }
-            
         }
 
         /// <summary>
-        /// Decorate the expression tree with a set of visitors
+        /// Decorate the expression tree with a set of visitors.
         /// </summary>
-        /// <param name="expression"></param>
-        /// <returns></returns>
+        /// <param name="expression">The expression tom visit.</param>
+        /// <returns>The expression after being visited.</returns>
         private Expression InterceptExpr(Expression expression)
         {
             Expression exp = expression;
-            if (_visitors == null)
+            if (this._visitors == null)
             {
                 return exp;
             }
 
-            foreach (var visitor in _visitors)
+            foreach (var visitor in this._visitors)
+            {
                 exp = visitor(exp);
+            }
+
             return exp;
         }
     }

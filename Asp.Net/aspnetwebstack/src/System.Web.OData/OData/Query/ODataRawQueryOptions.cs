@@ -54,7 +54,7 @@ namespace System.Web.OData.Query
 
         /// <summary>
         ///  Gets the raw $apply query value from the incoming request Uri if exists.
-        /// </summary
+        /// </summary>
         public string Apply { get; internal set; }
     }
 }

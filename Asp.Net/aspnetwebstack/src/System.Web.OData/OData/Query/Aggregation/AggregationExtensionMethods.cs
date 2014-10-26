@@ -8,6 +8,12 @@ namespace System.Web.OData.OData.Query.Aggregation
 {
     public static class AggregationExtensionMethods
     {
+
+        /// <summary>
+        /// Gets the first element in an IQueriable.
+        /// </summary>
+        /// <param name="queryable">IQueriable</param>
+        /// <returns>The first element</returns>
         public static object First(this IQueryable queryable)
         {
             var enumerator = queryable.GetEnumerator();
@@ -15,6 +21,11 @@ namespace System.Web.OData.OData.Query.Aggregation
             return enumerator.Current;
         }
 
+        /// <summary>
+        /// Convert an IQueryable to a list of objects.
+        /// </summary>
+        /// <param name="queryable">IQueriable</param>
+        /// <returns>List of objects</returns>
         public static List<object> AllElements(this IQueryable queryable)
         {
             var results = new List<object>();
@@ -26,6 +37,11 @@ namespace System.Web.OData.OData.Query.Aggregation
             return results;
         }
 
+        /// <summary>
+        /// Find an IEnumerable in a type.
+        /// </summary>
+        /// <param name="seqType">The type to explore</param>
+        /// <returns>The type of the IEnumerable that was found</returns>
         public static Type FindIEnumerable(this Type seqType)
         {
             if (seqType == null || seqType == typeof(string))

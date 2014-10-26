@@ -13,13 +13,13 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
     public class MinAggregation : AggregationImplementationBase
     {
         /// <summary>
-        /// Implement the Min aggregation method
+        /// Implement the Min aggregation method.
         /// </summary>
         /// <param name="elementType">The type of entities</param>
         /// <param name="query">The collection</param>
         /// <param name="transformation">The transformation clause created by the parser</param>
         /// <param name="propertyToAggregateExpression">Projection Expression that defines access to the property to aggregate</param>
-        /// <returns>The Min result</returns>
+        /// <returns>The Min result.</returns>
         public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression)
         {
             var resultType = this.GetResultType(elementType, transformation);
@@ -31,11 +31,11 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         }
 
         /// <summary>
-        /// Get the type of the aggregation result
+        /// Get the type of the aggregation result.
         /// </summary>
         /// <param name="elementType">the entity type</param>
         /// <param name="transformation">The transformation clause created by the parser</param>
-        /// <returns>The type of the aggregation result</returns>
+        /// <returns>The type of the aggregation result.</returns>
         public override Type GetResultType(Type elementType, ApplyAggregateClause transformation)
         {
             return GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
@@ -46,11 +46,12 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// </summary>
         /// <param name="temporaryResults">The results to combine, as <see cref="<Tuple<object, int>"/> when item1 is the result 
         /// and item2 is the number of elements that produced this temporary result</param>
-        /// <returns>The final result</returns>
+        /// <returns>The final result.</returns>
         public override object CombineTemporaryResults(List<Tuple<object, int>> temporaryResults)
         {
             if (temporaryResults.Count() == 1)
                 return temporaryResults[0].Item1;
+
             var t = temporaryResults[0].Item1.GetType();
             switch (t.Name)
             {

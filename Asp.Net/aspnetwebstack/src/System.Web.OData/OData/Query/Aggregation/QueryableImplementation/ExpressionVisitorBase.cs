@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
 {
     /// <summary>
-    /// Base class for ExpressionVisitors that parse expressions
+    /// Base class for ExpressionVisitors that parse expressions.
     /// </summary>
     internal abstract class ExpressionVisitorBase
     {
@@ -18,10 +18,10 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         }
 
         /// <summary>
-        /// Define a basic strategy for visiting an expression
+        /// Define a basic strategy for visiting an expression.
         /// </summary>
-        /// <param name="exp"></param>
-        /// <returns></returns>
+        /// <param name="exp">Expression to explore.</param>
+        /// <returns>The expression after being visited.</returns>
         protected virtual Expression Visit(Expression exp)
         {
             if (exp == null)
@@ -94,10 +94,10 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="MemberBinding"/> expressions
+        /// Basic strategy for visiting <see cref="MemberBinding"/> expressions.
         /// </summary>
         /// <param name="binding">The <see cref="MemberBinding"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual MemberBinding VisitBinding(MemberBinding binding)
         {
             switch (binding.BindingType)
@@ -114,10 +114,10 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="ElementInit"/> expressions
+        /// Basic strategy for visiting <see cref="ElementInit"/> expressions.
         /// </summary>
         /// <param name="initializer">The <see cref="ElementInit"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual ElementInit VisitElementInitializer(ElementInit initializer)
         {
             ReadOnlyCollection<Expression> arguments = this.VisitExpressionList(initializer.Arguments);
@@ -125,14 +125,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return Expression.ElementInit(initializer.AddMethod, arguments);
             }
+
             return initializer;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="UnaryExpression"/> expressions
+        /// Basic strategy for visiting <see cref="UnaryExpression"/> expressions.
         /// </summary>
         /// <param name="u">The <see cref="UnaryExpression"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual Expression VisitUnary(UnaryExpression u)
         {
             Expression operand = this.Visit(u.Operand);
@@ -140,14 +141,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return Expression.MakeUnary(u.NodeType, operand, u.Type, u.Method);
             }
+
             return u;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="BinaryExpression"/> expressions
+        /// Basic strategy for visiting <see cref="BinaryExpression"/> expressions.
         /// </summary>
         /// <param name="b">The <see cref="BinaryExpression"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual Expression VisitBinary(BinaryExpression b)
         {
             Expression left = this.Visit(b.Left);
@@ -160,14 +162,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                 else
                     return Expression.MakeBinary(b.NodeType, left, right, b.IsLiftedToNull, b.Method);
             }
+
             return b;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="TypeBinaryExpression"/> expressions
+        /// Basic strategy for visiting <see cref="TypeBinaryExpression"/> expressions.
         /// </summary>
         /// <param name="b">The <see cref="TypeBinaryExpression"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual Expression VisitTypeIs(TypeBinaryExpression b)
         {
             Expression expr = this.Visit(b.Expression);
@@ -175,24 +178,25 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return Expression.TypeIs(expr, b.TypeOperand);
             }
+
             return b;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="ConstantExpression"/> expressions
+        /// Basic strategy for visiting <see cref="ConstantExpression"/> expressions.
         /// </summary>
         /// <param name="c">The <see cref="ConstantExpression"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual Expression VisitConstant(ConstantExpression c)
         {
             return c;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="ConditionalExpression"/> expressions
+        /// Basic strategy for visiting <see cref="ConditionalExpression"/> expressions.
         /// </summary>
         /// <param name="c">The <see cref="ConditionalExpression"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual Expression VisitConditional(ConditionalExpression c)
         {
             Expression test = this.Visit(c.Test);
@@ -202,24 +206,25 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return Expression.Condition(test, ifTrue, ifFalse);
             }
+
             return c;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="ParameterExpression"/> expressions
+        /// Basic strategy for visiting <see cref="ParameterExpression"/> expressions.
         /// </summary>
         /// <param name="p">The <see cref="ParameterExpression"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual Expression VisitParameter(ParameterExpression p)
         {
             return p;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="MemberExpression"/> expressions
+        /// Basic strategy for visiting <see cref="MemberExpression"/> expressions.
         /// </summary>
         /// <param name="m">The <see cref="MemberExpression"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual Expression VisitMemberAccess(MemberExpression m)
         {
             Expression exp = this.Visit(m.Expression);
@@ -227,14 +232,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return Expression.MakeMemberAccess(exp, m.Member);
             }
+
             return m;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="MethodCallExpression"/> expressions
+        /// Basic strategy for visiting <see cref="MethodCallExpression"/> expressions.
         /// </summary>
         /// <param name="m">The <see cref="MethodCallExpression"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual Expression VisitMethodCall(MethodCallExpression m)
         {
             Expression obj = this.Visit(m.Object);
@@ -243,14 +249,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return Expression.Call(obj, m.Method, args);
             }
+
             return m;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="ReadOnlyCollection<Expression>"/> expressions
+        /// Basic strategy for visiting <see cref="ReadOnlyCollection{Expression}"/> expressions.
         /// </summary>
-        /// <param name="original">The <see cref="ReadOnlyCollection<Expression>"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <param name="original">The <see cref="ReadOnlyCollection{Expression}"/> expression to visit</param>
+        /// <returns>The expression after being visited.</returns>
         protected virtual ReadOnlyCollection<Expression> VisitExpressionList(ReadOnlyCollection<Expression> original)
         {
             List<Expression> list = null;
@@ -275,14 +282,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return list.AsReadOnly();
             }
+
             return original;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="MemberAssignment"/> expressions
+        /// Basic strategy for visiting <see cref="MemberAssignment"/> expressions.
         /// </summary>
         /// <param name="assignment">The <see cref="MemberAssignment"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual MemberAssignment VisitMemberAssignment(MemberAssignment assignment)
         {
             Expression e = this.Visit(assignment.Expression);
@@ -290,14 +298,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return Expression.Bind(assignment.Member, e);
             }
+
             return assignment;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="MemberMemberBinding"/> expressions
+        /// Basic strategy for visiting <see cref="MemberMemberBinding"/> expressions.
         /// </summary>
         /// <param name="binding">The <see cref="MemberMemberBinding"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited</returns>
         protected virtual MemberMemberBinding VisitMemberMemberBinding(MemberMemberBinding binding)
         {
             IEnumerable<MemberBinding> bindings = this.VisitBindingList(binding.Bindings);
@@ -305,14 +314,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return Expression.MemberBind(binding.Member, bindings);
             }
+
             return binding;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="MemberListBinding"/> expressions
+        /// Basic strategy for visiting <see cref="MemberListBinding"/> expressions.
         /// </summary>
         /// <param name="binding">The <see cref="MemberListBinding"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual MemberListBinding VisitMemberListBinding(MemberListBinding binding)
         {
             IEnumerable<ElementInit> initializers = this.VisitElementInitializerList(binding.Initializers);
@@ -320,14 +330,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return Expression.ListBind(binding.Member, initializers);
             }
+
             return binding;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="ReadOnlyCollection<MemberBinding>"/> expressions
+        /// Basic strategy for visiting <see cref="ReadOnlyCollection{MemberBinding}"/> expressions.
         /// </summary>
-        /// <param name="original">The <see cref="ReadOnlyCollection<MemberBinding>"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <param name="original">The <see cref="ReadOnlyCollection{MemberBinding}"/> expression to visit</param>
+        /// <returns>The expression after being visited.</returns>
         protected virtual IEnumerable<MemberBinding> VisitBindingList(ReadOnlyCollection<MemberBinding> original)
         {
             List<MemberBinding> list = null;
@@ -352,14 +363,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return list;
             }
+
             return original;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="ReadOnlyCollection<ElementInit>"/> expressions
+        /// Basic strategy for visiting <see cref="ReadOnlyCollection{ElementInit}"/> expressions.
         /// </summary>
-        /// <param name="original">The <see cref="ReadOnlyCollection<ElementInit>"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <param name="original">The <see cref="ReadOnlyCollection{ElementInit}"/> expression to visit</param>
+        /// <returns>The expression after being visited.</returns>
         protected virtual IEnumerable<ElementInit> VisitElementInitializerList(ReadOnlyCollection<ElementInit> original)
         {
             List<ElementInit> list = null;
@@ -377,21 +389,24 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                     {
                         list.Add(original[j]);
                     }
+
                     list.Add(init);
                 }
             }
+
             if (list != null)
             {
                 return list;
             }
+
             return original;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="LambdaExpression"/> expressions
+        /// Basic strategy for visiting <see cref="LambdaExpression"/> expressions.
         /// </summary>
         /// <param name="lambda">The <see cref="LambdaExpression"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual Expression VisitLambda(LambdaExpression lambda)
         {
             Expression body = this.Visit(lambda.Body);
@@ -399,14 +414,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return Expression.Lambda(lambda.Type, body, lambda.Parameters);
             }
+
             return lambda;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="NewExpression"/> expressions
+        /// Basic strategy for visiting <see cref="NewExpression"/> expressions.
         /// </summary>
         /// <param name="nex">The <see cref="NewExpression"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual NewExpression VisitNew(NewExpression nex)
         {
             IEnumerable<Expression> args = this.VisitExpressionList(nex.Arguments);
@@ -417,14 +433,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                 else
                     return Expression.New(nex.Constructor, args);
             }
+
             return nex;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="MemberInitExpression"/> expressions
+        /// Basic strategy for visiting <see cref="MemberInitExpression"/> expressions.
         /// </summary>
         /// <param name="init">The <see cref="MemberInitExpression"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual Expression VisitMemberInit(MemberInitExpression init)
         {
             NewExpression n = this.VisitNew(init.NewExpression);
@@ -433,14 +450,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return Expression.MemberInit(n, bindings);
             }
+
             return init;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="ListInitExpression"/> expressions
+        /// Basic strategy for visiting <see cref="ListInitExpression"/> expressions.
         /// </summary>
         /// <param name="init">The <see cref="ListInitExpression"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual Expression VisitListInit(ListInitExpression init)
         {
             NewExpression n = this.VisitNew(init.NewExpression);
@@ -449,14 +467,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return Expression.ListInit(n, initializers);
             }
+
             return init;
         }
 
         /// <summary>
-        /// Basic strategy for visiting <see cref="NewArrayExpression"/> expressions
+        /// Basic strategy for visiting <see cref="NewArrayExpression"/> expressions.
         /// </summary>
         /// <param name="na">The <see cref="NewArrayExpression"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited.</returns>
         protected virtual Expression VisitNewArray(NewArrayExpression na)
         {
             IEnumerable<Expression> exprs = this.VisitExpressionList(na.Expressions);
@@ -471,6 +490,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                     return Expression.NewArrayBounds(na.Type.GetElementType(), exprs);
                 }
             }
+
             return na;
         }
 
@@ -478,7 +498,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         /// Basic strategy for visiting <see cref="InvocationExpression"/> expressions
         /// </summary>
         /// <param name="iv">The <see cref="InvocationExpression"/> expression to visit</param>
-        /// <returns>the expression after being visited</returns>
+        /// <returns>The expression after being visited</returns>
         protected virtual Expression VisitInvocation(InvocationExpression iv)
         {
             IEnumerable<Expression> args = this.VisitExpressionList(iv.Arguments);
@@ -487,6 +507,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return Expression.Invoke(expr, args);
             }
+
             return iv;
         }
     }

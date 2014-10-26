@@ -16,7 +16,9 @@ using Microsoft.OData.Core.UriParser.Semantic;
 
 namespace System.Web.OData.OData.Query.Aggregation
 {
-
+    /// <summary>
+    /// Implementation of the group-by aggregation transformation.
+    /// </summary>
     public class GroupByImplementation : ApplyImplementationBase
     {
         /// <summary>
@@ -25,13 +27,13 @@ namespace System.Web.OData.OData.Query.Aggregation
         public ODataQueryContext Context { get; set; }
 
         /// <summary>
-        /// Execute group-by without aggregation on the results
+        /// Execute group-by without aggregation on the results.
         /// </summary>
-        /// <param name="query">The collection to group</param>
-        /// <param name="transformation">the group-by transformation as <see cref="ApplyGroupbyClause"/></param>
-        /// <param name="keyType">the key type to group by</param>
-        /// <param name="propertiesToGroupByExpressions">Lambda expression that represents access to the properties to group by</param>
-        /// <returns>The results of the group by transformation as <see cref="IQueryable"/></returns>
+        /// <param name="query">The collection to group.</param>
+        /// <param name="transformation">the group-by transformation as <see cref="ApplyGroupbyClause"/>.</param>
+        /// <param name="keyType">the key type to group by.</param>
+        /// <param name="propertiesToGroupByExpressions">Lambda expression that represents access to the properties to group by.</param>
+        /// <returns>The results of the group by transformation as <see cref="IQueryable"/>.</returns>
         public IQueryable DoGroupBy(IQueryable query, ApplyGroupbyClause transformation, Type keyType, IEnumerable<LambdaExpression> propertiesToGroupByExpressions)
         {
             var propToGroupBy = (propertiesToGroupByExpressions != null)
@@ -45,17 +47,17 @@ namespace System.Web.OData.OData.Query.Aggregation
         }
 
         /// <summary>
-        /// Execute group-by with aggregation on the results
+        /// Execute group-by with aggregation on the results.
         /// </summary>
-        /// <param name="query">The collection to group</param>
-        /// <param name="maxResults">The max number of elements in a result set</param>
-        /// <param name="transformation">the group-by transformation as <see cref="ApplyGroupbyClause"/></param>
-        /// <param name="keyType">the key type to group by</param>
-        /// <param name="propertiesToGroupByExpressions">Lambda expression that represents access to the properties to group by</param>
-        /// <param name="propertyToAggregateExpression">Lambda expression that represents access to the property to aggregate</param>
-        /// <param name="keys">output the collection keys of the grouped results</param>
-        /// <param name="aggragatedValues">output the aggregated results</param>
-        public void DoAggregatedGroupBy(IQueryable query, int maxResults, ApplyGroupbyClause transformation, 
+        /// <param name="query">The collection to group.</param>
+        /// <param name="maxResults">The max number of elements in a result set.</param>
+        /// <param name="transformation">the group-by transformation as <see cref="ApplyGroupbyClause"/>.</param>
+        /// <param name="keyType">the key type to group by.</param>
+        /// <param name="propertiesToGroupByExpressions">Lambda expression that represents access to the properties to group by.</param>
+        /// <param name="propertyToAggregateExpression">Lambda expression that represents access to the property to aggregate.</param>
+        /// <param name="keys">Output the collection keys of the grouped results.</param>
+        /// <param name="aggragatedValues">Output the aggregated results.</param>
+        public void DoAggregatedGroupBy(IQueryable query, int maxResults, ApplyGroupbyClause transformation,
             Type keyType, IEnumerable<LambdaExpression> propertiesToGroupByExpressions, LambdaExpression propertyToAggregateExpression, out IQueryable keys, out object[] aggragatedValues)
         {
             var propToGroupBy = (propertiesToGroupByExpressions != null)
@@ -67,7 +69,7 @@ namespace System.Web.OData.OData.Query.Aggregation
             var aggregationImplementation =
                 AggregationMethodsImplementations.GetAggregationImplementation(transformation.Aggregate.AggregationMethod);
 
-            ///if group by is not supported in this IQueriable provider convert the grouping into memory implementation
+            // if group by is not supported in this IQueriable provider convert the grouping into memory implementation
             object convertedResult = null;
             if (QueriableProviderAdapter.ConvertionIsRequiredAsExpressionIfNotSupported(groupingResults, maxResults, out convertedResult))
             {
@@ -95,13 +97,13 @@ namespace System.Web.OData.OData.Query.Aggregation
             aggragatedValues = results.ToArray();
         }
 
-
         /// <summary>
         /// Parse the "with {aggregationName} as {alias}" statements. 
         /// </summary>
-        /// <param name="statement">statement to parse</param>
-        /// <param name="samplingMethod">samplingMethod parsed from the statement</param>
-        /// <param name="alias">alias parsed from the statement</param>
+        /// <param name="statement">Statement to parse.</param>
+        /// <param name="samplingMethod">SamplingMethod parsed from the statement.</param>
+        /// <param name="alias">Alias parsed from the statement.</param>
+        /// <param name="samplingProperty">The sampling property.</param>
         internal static void GetSamplingMethod(string statement, out string samplingMethod, out string alias, out string samplingProperty)
         {
             alias = null;
@@ -118,12 +120,12 @@ namespace System.Web.OData.OData.Query.Aggregation
         }
 
         /// <summary>
-        /// Get the keys from the grouping results (i.e. results.select(res=>res.Key))
+        /// Get the keys from the grouping results (i.e. results.select(res=>res.Key)).
         /// </summary>
-        /// <param name="dataToProject">The grouping result</param>
-        /// <param name="keyType">The key type</param>
-        /// <param name="elementType">the entity type</param>
-        /// <returns>collection of keys</returns>
+        /// <param name="dataToProject">The grouping result.</param>
+        /// <param name="keyType">The key type.</param>
+        /// <param name="elementType">The entity type.</param>
+        /// <returns>Collection of keys.</returns>
         internal IQueryable GetGroupingKeys(IQueryable dataToProject, Type keyType, Type elementType)
         {
             var groupedItemType = typeof(IGrouping<,>).MakeGenericType(keyType, elementType);
@@ -132,13 +134,13 @@ namespace System.Web.OData.OData.Query.Aggregation
         }
 
         /// <summary>
-        /// Get the values from the grouping results (i.e. results.select(res=>res.ToList()))
+        /// Get the values from the grouping results (i.e. results.select(res=>res.ToList())).
         /// </summary>
-        /// <param name="dataToProject">The grouping results</param>
-        /// <param name="keyType">The key type</param>
-        /// <param name="resType">the result type</param>
-        /// <param name="elementType">the entity type</param>
-        /// <returns>collection of results</returns>
+        /// <param name="dataToProject">The grouping results.</param>
+        /// <param name="keyType">The key type.</param>
+        /// <param name="resType">The result type.</param>
+        /// <param name="elementType">The entity type.</param>
+        /// <returns>Collection of results.</returns>
         internal IEnumerable GetGroupingValues(IQueryable dataToProject, Type keyType, Type resType, Type elementType)
         {
             var toListMethodInfo = ExpressionHelperMethods.EnumerabltToListGeneric.MakeGenericMethod(elementType);
@@ -148,7 +150,7 @@ namespace System.Web.OData.OData.Query.Aggregation
         }
 
         /// <summary>
-        /// Helper method to create a new dynamic type for the group-by key
+        /// Helper method to create a new dynamic type for the group-by key.
         /// </summary>
         /// <param name="transformation"></param>
         /// <returns></returns>
@@ -182,10 +184,11 @@ namespace System.Web.OData.OData.Query.Aggregation
                         keyProperties.Add(new Tuple<Type, string>(pi.PropertyType, pi.Name));
                     }
                 }
-                else // complex property
+                else
                 {
+                    // complex property
                     var propName = statement.Key.TrimMethodCall();
-                    var pi = Context.ElementClrType.GetProperty(propName);
+                    var pi = this.Context.ElementClrType.GetProperty(propName);
                     var newPropertyType = GenerateComplexType(pi.PropertyType, statement.Value);
                     keyProperties.Add(new Tuple<Type, string>(newPropertyType, propName));
                 }
@@ -196,11 +199,11 @@ namespace System.Web.OData.OData.Query.Aggregation
 
 
         /// <summary>
-        /// Continue the recursive operation of creating the Group-By key
+        /// Continue the recursive operation of creating the Group-By key.
         /// </summary>
-        /// <param name="declaringType">The type based on which we are going to create the new type</param>
-        /// <param name="segments">The select segments that declare what to create</param>
-        /// <returns>A new type</returns>
+        /// <param name="declaringType">The type based on which we are going to create the new type.</param>
+        /// <param name="segments">The select segments that declare what to create.</param>
+        /// <returns>A new type.</returns>
         private Type GenerateComplexType(Type declaringType, IEnumerable<string> segments)
         {
             Contract.Assert(declaringType != null);
@@ -230,8 +233,9 @@ namespace System.Web.OData.OData.Query.Aggregation
                         keyProperties.Add(new Tuple<Type, string>(pi.PropertyType, pi.Name));
                     }
                 }
-                else //complex property
+                else
                 {
+                    // complex property
                     var key = statement.Key.Split(' ').First().TrimMethodCallSufix();
                     var pi = declaringType.GetProperty(key);
                     var newPropertyType = GenerateComplexType(pi.PropertyType, statement.Value);
@@ -244,10 +248,10 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <summary>
         /// Create a dictionary of all the selected segments based on their roots. 
         /// For example the list "Amount, Customer/Name, Customer/Address/Street" will create the following dictionary:
-        /// (Amount, {Amount}), (Customer, {Name, Address/Street}) 
+        /// (Amount, {Amount}), (Customer, {Name, Address/Street}). 
         /// </summary>
-        /// <param name="selectedStatement"></param>
-        /// <returns></returns>
+        /// <param name="selectedStatement">The statements.</param>
+        /// <returns>A dictionary of all the selected segments based on their roots</returns>
         private static Dictionary<string, IEnumerable<string>> GetSelectedStatementsDictionary(IEnumerable<string> selectedStatement)
         {
             var selectedStatementsDictionary = new Dictionary<string, IEnumerable<string>>();
@@ -280,17 +284,18 @@ namespace System.Web.OData.OData.Query.Aggregation
             {
                 selectedStatementsDictionary.Add(g.Key, g.ToList());
             }
+
             return selectedStatementsDictionary;
         }
 
 
 
-       /// <summary>
-       /// Create a <see cref="LambdaExpression"/> such as: Expression{Func{Sales, keyType}} projectionLambda = s => new KeyType(Amount = s.Amount, Id=s.Id)
-       /// </summary>
-       /// <param name="selectStatements">The selected statements creating the key of the group-by operation</param>
-       /// <param name="keyType">The type of the key of the group-by operation</param>
-       /// <returns><see cref="LambdaExpression"/></returns>
+        /// <summary>
+        /// Create a <see cref="LambdaExpression"/> such as: Expression{Func{Sales, keyType}} projectionLambda = s => new KeyType(Amount = s.Amount, Id=s.Id).
+        /// </summary>
+        /// <param name="selectStatements">The selected statements creating the key of the group-by operation.</param>
+        /// <param name="keyType">The type of the key of the group-by operation.</param>
+        /// <returns><see cref="LambdaExpression"/>.</returns>
         private LambdaExpression GetGroupByProjectionLambda(string[] selectStatements, Type keyType, LambdaExpression[] propertiesToGroupByExpressions)
         {
             Contract.Assert(keyType != null);
@@ -340,7 +345,7 @@ namespace System.Web.OData.OData.Query.Aggregation
                     }
                     var mi = keyType.GetMember(prop).First();
                     var propertyType = GetPropertyInfo(this.Context.ElementClrType, statement).Last().PropertyType;
-                   
+
                     var implementation = SamplingMethodsImplementations.GetAggregationImplementation(samplingMethod);
                     MethodInfo method = implementation.GetSamplingProcessingMethod(propertyType);
 
