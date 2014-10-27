@@ -82,7 +82,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                     }
 
                     newArgs.AddRange(args.Skip(1)); // paste the original arguments (except the first) to the new list
-                    var convertedExpression = Expression.Call(m.Object, m.Method, newArgs); /// create a new <see cref="MethodCallExpression"/>
+                    var convertedExpression = Expression.Call(m.Object, m.Method, newArgs); // create a new <see cref="MethodCallExpression"/>
                     newRecord.ConvertedExpression = convertedExpression;
                     this._baseCollections.Add(m, newRecord);
                     return convertedExpression;

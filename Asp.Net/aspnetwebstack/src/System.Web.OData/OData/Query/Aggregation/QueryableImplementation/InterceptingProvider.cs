@@ -130,7 +130,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return this._underlyingProvider.Execute<TResult>(this.InterceptExpr(expression));
             }
-            catch (NotSupportedException ex)
+            catch (NotSupportedException)
             {
                 var adapter = new QueriableProviderAdapter() { Provider = this._underlyingProvider, MaxCollectionSize = this.MaxResults };
                 var res = adapter.Eval<TResult>(expression, this.Combiner);
@@ -149,7 +149,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 return this._underlyingProvider.Execute(InterceptExpr(expression));
             }
-            catch (NotSupportedException ex)
+            catch (NotSupportedException)
             {
                 var adapter = new QueriableProviderAdapter() { Provider = _underlyingProvider, MaxCollectionSize = MaxResults };
                 var res = adapter.Eval(expression, Combiner);

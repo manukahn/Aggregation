@@ -32,11 +32,18 @@ namespace System.Web.OData.OData.Query.Aggregation.SamplingMethods
     [AttributeUsage(AttributeTargets.Class)]
     public class SamplingMethodAttribute : Attribute
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SamplingMethodAttribute"/> class.
+        /// </summary>
+        /// <param name="name">The name of the sampling method as it will appear in the query.</param>
         public SamplingMethodAttribute(string name)
         {
-            Name = name;
+            this.Name = name;
         }
 
+        /// <summary>
+        /// Gets the name of the sampling method as it will appear in the query.
+        /// </summary>
         public string Name { get; private set; }
     }
 }

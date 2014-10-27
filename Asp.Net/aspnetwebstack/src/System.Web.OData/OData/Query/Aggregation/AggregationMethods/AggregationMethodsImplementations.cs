@@ -37,11 +37,18 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
     [AttributeUsage(AttributeTargets.Class)]
     public class AggregationMethodAttribute : Attribute
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AggregationMethodAttribute"/> class.
+        /// </summary>
+        /// <param name="name">The name of the sampling method as it will appear in the query.</param>
         public AggregationMethodAttribute(string name)
         {
-            Name = name;
+            this.Name = name;
         }
 
+        /// <summary>
+        /// Gets the name of the sampling method as it will appear in the query.
+        /// </summary>
         public string Name { get; private set; }
     }
 }
