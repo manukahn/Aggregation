@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Security.Principal;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
 {
@@ -17,9 +11,9 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
     internal class QueriableProviderAdapter
     {
         /// <summary>
-        /// Save the list of unsupported methods per provider
+        /// Save the list of unsupported methods per provider.
         /// </summary>
-        private static ConcurrentDictionary<string, List<string>> UnsupportedMethodsPerProvider =
+        private static ConcurrentDictionary<string, List<string>> unsupportedMethodsPerProvider =
             new ConcurrentDictionary<string, List<string>>();
 
         public IQueryProvider Provider { get; set; }
@@ -39,7 +33,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             var methodsNames = vistor.Eval(query.Expression);
             var providerName = query.Provider.GetType().Name;
             List<string> knownUnsupportedFunctions;
-            if (UnsupportedMethodsPerProvider.TryGetValue(providerName, out knownUnsupportedFunctions))
+            if (unsupportedMethodsPerProvider.TryGetValue(providerName, out knownUnsupportedFunctions))
             {
                 if (knownUnsupportedFunctions.Intersect(methodsNames).Count() > 0)
                 {
@@ -61,7 +55,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                 var unsupportedMethod = ex.Message.Split(' ').Intersect(methodsNames).FirstOrDefault();
                 if (!string.IsNullOrEmpty(unsupportedMethod))
                 {
-                    UnsupportedMethodsPerProvider.AddOrUpdate(
+                    unsupportedMethodsPerProvider.AddOrUpdate(
                         providerName,
                         (_) => new List<string>() { unsupportedMethod },
                         (_, lst) =>
@@ -92,7 +86,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         {
             var baseCollections = new Dictionary<Expression, QueryableRecord>();
             var tempResults = new List<Tuple<object, int>>();
-            TResult res = EvalImplementation<TResult>(query, baseCollections, 0);
+            TResult res = this.EvalImplementation<TResult>(query, baseCollections, 0);
 
             var realRecord = baseCollections.Values.FirstOrDefault(record => record.LimitReached.HasValue && record.LimitReached.Value == true);
             if (realRecord == null)
@@ -100,12 +94,12 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                 return res;
             }
 
-            tempResults.Add(new Tuple<object, int>(res, MaxCollectionSize));
+            tempResults.Add(new Tuple<object, int>(res, this.MaxCollectionSize));
             while (realRecord != null)
             {
                 baseCollections.Clear();
-                var result = EvalImplementation<TResult>(query, baseCollections, realRecord.IndexInOriginalQueryable);
-                int numberOfComputedElements = MaxCollectionSize;
+                var result = this.EvalImplementation<TResult>(query, baseCollections, realRecord.IndexInOriginalQueryable);
+                int numberOfComputedElements = this.MaxCollectionSize;
                 if (baseCollections.Values.First().LimitReached == false)
                 {
                     numberOfComputedElements = baseCollections.Values.First().IndexInOriginalQueryable % MaxCollectionSize;
@@ -116,7 +110,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
 
             if (combinerOfTemporaryResults == null)
             {
-                combinerOfTemporaryResults = CombineTemporaryResults;
+                combinerOfTemporaryResults = this.CombineTemporaryResults;
             }
 
             return (TResult)combinerOfTemporaryResults(tempResults);
@@ -143,15 +137,15 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                 return res;
             }
 
-            tempResults.Add(new Tuple<object, int>(res, MaxCollectionSize));
+            tempResults.Add(new Tuple<object, int>(res, this.MaxCollectionSize));
             while (realRecord != null)
             {
                 baseCollections.Clear();
                 var result = EvalImplementation<object>(query, baseCollections, realRecord.IndexInOriginalQueryable);
-                int numberOfComputedElements = MaxCollectionSize;
+                int numberOfComputedElements = this.MaxCollectionSize;
                 if (baseCollections.Values.First().LimitReached == false)
                 {
-                    numberOfComputedElements = baseCollections.Values.First().IndexInOriginalQueryable % MaxCollectionSize;
+                    numberOfComputedElements = baseCollections.Values.First().IndexInOriginalQueryable % this.MaxCollectionSize;
                 }
                 tempResults.Add(new Tuple<object, int>(result, numberOfComputedElements));
                 realRecord = baseCollections.Values.FirstOrDefault(record => record.LimitReached.HasValue && record.LimitReached.Value == true);
@@ -159,7 +153,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
 
             if (combinerOfTemporaryResults == null)
             {
-                combinerOfTemporaryResults = CombineTemporaryResults;
+                combinerOfTemporaryResults = this.CombineTemporaryResults;
             }
 
             return combinerOfTemporaryResults(tempResults);
@@ -199,21 +193,20 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                     finalRes.Add(item);
                 }
             }
-            return ExpressionHelpers.Cast(elementType, finalRes.Distinct().AsQueryable());
+            return ExpressionHelpers.Cast(elementType, finalRes.AsQueryable());
         }
 
-
         /// <summary>
-        /// Execute a query by first removing dependencies in physical repositories and then compile and execute
+        /// Executes a query by first removing dependencies in physical repositories and then compile and execute.
         /// </summary>
-        /// <typeparam name="TResult">The type of the result</typeparam>
-        /// <param name="query">The query to execute expressed as an expression tree</param>
-        /// <param name="baseCollections">a container for the collection that the query depends on</param>
-        /// <param name="skip">The number of elements to skip from the beginning</param>
-        /// <returns>The result of the query</returns>
+        /// <typeparam name="TResult">The type of the result.</typeparam>
+        /// <param name="query">The query to execute expressed as an expression tree.</param>
+        /// <param name="baseCollections">A container for the collection that the query depends on.</param>
+        /// <param name="skip">The number of elements to skip from the beginning.</param>
+        /// <returns>The result of the query.</returns>
         private TResult EvalImplementation<TResult>(Expression query, Dictionary<Expression, QueryableRecord> baseCollections, int skip)
         {
-            var converter = new MethodCallConverter(Provider, baseCollections, MaxCollectionSize);
+            var converter = new MethodCallConverter(this.Provider, baseCollections, this.MaxCollectionSize);
             var newExp = converter.Convert(query, skip);
 
             LambdaExpression lambda = Expression.Lambda(newExp);

@@ -240,7 +240,7 @@ namespace System.Web.OData.Aggregation.Tests
             IEnumerable<LambdaExpression> propertiesToGroupByExpressions;
             GetGroupByParams(value, out data, out context, out settings, out groupByClause, out assembliesResolver, out groupByImplementation, out keyType, out propertiesToGroupByExpressions);
             
-            return groupByImplementation.DoGroupBy(data, groupByClause, keyType, propertiesToGroupByExpressions);
+            return groupByImplementation.DoGroupBy(data, 2000, groupByClause, keyType, propertiesToGroupByExpressions);
         }
 
 

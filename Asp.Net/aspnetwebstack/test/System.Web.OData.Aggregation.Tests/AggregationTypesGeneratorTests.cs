@@ -47,7 +47,7 @@ namespace System.Web.OData.Aggregation.Tests
                         new Tuple<Type, string>(typeof(string), "Name"),
                         new Tuple<Type, string>(typeof(int), "Age"),
                         new Tuple<Type, string>(typeof(bool), "Prop1"),
-                        new Tuple<Type, string>(typeof(DateTime), "Prop2"),
+                        //new Tuple<Type, string>(typeof(DateTime), "Prop2"),
                         new Tuple<Type, string>(typeof(DateTimeOffset), "Prop3"),
                         new Tuple<Type, string>(typeof(Decimal), "Prop4"),
                         new Tuple<Type, string>(typeof(double), "Prop5"),
@@ -71,7 +71,7 @@ namespace System.Web.OData.Aggregation.Tests
                         new Tuple<Type, string>(typeof(string), "Name"),
                         new Tuple<Type, string>(typeof(int), "Age"),
                         new Tuple<Type, string>(typeof(bool), "Prop1"),
-                        new Tuple<Type, string>(typeof(DateTime), "Prop2"),
+                        //new Tuple<Type, string>(typeof(DateTime), "Prop2"),
                         new Tuple<Type, string>(typeof(DateTimeOffset), "Prop3"),
                         new Tuple<Type, string>(typeof(Decimal), "Prop4"),
                         new Tuple<Type, string>(typeof(double), "Prop5"),
@@ -107,7 +107,7 @@ namespace System.Web.OData.Aggregation.Tests
                 () => { newType = AggregationTypesGenerator.CreateType(properties, Context, true); });
             "Then the new type should exist".Then(() => newType.Should().NotBeNull());
             "Then the new type namesoace should be ODataAggregation.DynamicTypes".Then(() => newType.Namespace.Should().BeEquivalentTo("ODataAggregation.DynamicTypes"));
-            "Then the new type should have 3 properties".Then(() => newType.GetProperties().Count().Should().Be(13));
+            "Then the new type should have 3 properties".Then(() => newType.GetProperties().Count().Should().Be(12));
             "Then the new type should be added as en entity to the model".Then(() => (Context.Model.FindDeclaredType(newType.FullName) as EdmEntityType).Should().NotBeNull());
         }
 
@@ -120,7 +120,7 @@ namespace System.Web.OData.Aggregation.Tests
                 () => { newType = AggregationTypesGenerator.CreateType(properties, Context, false); });
             "Then the new type should exist".Then(() => newType.Should().NotBeNull());
             "Then the new type namesoace should be ODataAggregation.DynamicTypes".Then(() => newType.Namespace.Should().BeEquivalentTo("ODataAggregation.DynamicTypes"));
-            "Then the new type should have 3 properties".Then(() => newType.GetProperties().Count().Should().Be(13));
+            "Then the new type should have 3 properties".Then(() => newType.GetProperties().Count().Should().Be(12));
             "Then the new type should be added as en complex type to the model".Then(() => (Context.Model.FindDeclaredType(newType.FullName) as EdmComplexType).Should().NotBeNull());
             
         }
