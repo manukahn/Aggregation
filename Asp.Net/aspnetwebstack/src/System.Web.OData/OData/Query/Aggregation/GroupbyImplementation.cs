@@ -92,13 +92,22 @@ namespace System.Web.OData.OData.Query.Aggregation
             // Here we make sure that keys are distinct and all values that belong to a key are written to the right list.  
             List<object> distictKeys;
             List<object> groupedValuesPerKey;
-            CombineValuesListsPerKey(keys.AllElements(), groupedValues.AllElements(), out distictKeys, out groupedValuesPerKey);
+            this.CombineValuesListsPerKey(keys.AllElements(), groupedValues.AllElements(), out distictKeys, out groupedValuesPerKey);
             keys = distictKeys.AsQueryable();
 
             var results = new List<object>();
             foreach (var values in groupedValuesPerKey)
             {
-                var valuesAsQueryable = ExpressionHelpers.AsQueryable(this.Context.ElementClrType, values as IEnumerable);
+                IQueryable valuesAsQueryable;
+                if (values is IEnumerable<object>)
+                {
+                    valuesAsQueryable = ExpressionHelpers.Cast(this.Context.ElementClrType, (values as IEnumerable<Object>).AsQueryable());
+                }
+                else
+                {
+                    valuesAsQueryable = ExpressionHelpers.Cast(this.Context.ElementClrType, (new List<Object>() { values }).AsQueryable());
+                }
+                
                 IQueryable queryToUse = valuesAsQueryable;
                 if (transformation.Aggregate.AggregatableProperty.Contains('/'))
                 {
@@ -237,19 +246,23 @@ namespace System.Web.OData.OData.Query.Aggregation
                 resKeys.Add(keys[i]);
                 for (int j = i; j < keys.Count; j++)
                 {
-                    var nextEqualKey = keys.FindIndex(j + 1, x => x.Equals(keys[i]));
+                    var nextEqualKey = keys.FindIndex(j + 1 , x => x.Equals(keys[i]));
                     if (nextEqualKey > j)
                     {
-                        if (values[nextEqualKey] is List<object>)
+                        if (values[nextEqualKey] is IEnumerable<object>)
                         {
-                            (resValues.Last() as List<object>).AddRange(values[nextEqualKey] as List<object>);
+                            var index = resValues.Count - 1;
+                            var lst = (resValues.Last() as IEnumerable<object>).ToList();
+                            lst.AddRange(values[nextEqualKey] as IEnumerable<object>);
+                            resValues.RemoveAt(index);
+                            resValues.Insert(index, lst);
                         }
                         else
                         {
                             resValues.Add(values[nextEqualKey]);
                         }
                         visited.Add(nextEqualKey);
-                        j = nextEqualKey;
+                        j = nextEqualKey - 1;
                     }
                 }
             }
