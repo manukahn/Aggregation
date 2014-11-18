@@ -16,7 +16,7 @@ namespace System.Web.OData.OData.Query.Aggregation.SamplingMethods
         {
             AggregationImplementations<SamplingImplementationBase>.RegisterAggregationImplementation("dayofweek", new DayOfWeekSampling());
             AggregationImplementations<SamplingImplementationBase>.RegisterAggregationImplementation("round", new RoundSampling());
-            AggregationImplementations<SamplingImplementationBase>.RegisterAggregationImplementation("hourinday", new HourOfDaySampling());
+            AggregationImplementations<SamplingImplementationBase>.RegisterAggregationImplementation("hourofday", new HourOfDaySampling());
         }
         
         /// <summary>
