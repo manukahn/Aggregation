@@ -219,7 +219,8 @@ namespace System.Web.OData.OData.Query
                     }
                     else
                     {
-                        var t = Type.GetType(pi.PropertyType.FullName);
+                        //var t = Type.GetType(pi.PropertyType.FullName);
+                        var t = pi.PropertyType;
                         var edmType = context.Model.GetEdmTypeReference(t);
                         if (edmType != null)
                         {

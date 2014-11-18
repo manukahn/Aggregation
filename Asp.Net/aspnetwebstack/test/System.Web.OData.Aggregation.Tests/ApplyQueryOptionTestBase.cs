@@ -49,6 +49,7 @@ namespace System.Web.OData.Aggregation.Tests
                     { "aggregate(Amount with max as Result)", 100.0 },
                     { "aggregate(Amount with average as Result)",62.86 },
                     { "aggregate(Amount with countdistinct as Result)",5 },
+                    { "aggregate(Amount with sumpower(2.0) as Result)", 35400},
                     { "groupby((Amount,Id), aggregate(Amount with sum as Result))",100.0 },
                     { "groupby((Product/TaxRate,Product/Category/Name,Id), aggregate(Amount with sum as Result))",100 },
                     { "groupby((Product/Category/Name), aggregate(Amount with sum as Result))",440.0 },

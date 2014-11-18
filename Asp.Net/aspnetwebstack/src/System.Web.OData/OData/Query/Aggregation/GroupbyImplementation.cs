@@ -114,7 +114,8 @@ namespace System.Web.OData.OData.Query.Aggregation
                     queryToUse = AggregationImplementationBase.FilterNullValues(query, this.Context.ElementClrType, transformation.Aggregate);
                 }
                 var projectionLambda = AggregationImplementationBase.GetProjectionLambda(this.Context.ElementClrType, transformation.Aggregate, propertyToAggregateExpression);
-                var aggragationResult = aggregationImplementation.DoAggregatinon(this.Context.ElementClrType, queryToUse, transformation.Aggregate, projectionLambda);
+                string[] aggregationParams = AggregationImplementationBase.GetAggregationParams(transformation.Aggregate.AggregationMethod);
+                var aggragationResult = aggregationImplementation.DoAggregatinon(this.Context.ElementClrType, queryToUse, transformation.Aggregate, projectionLambda, aggregationParams);
                 results.Add(aggragationResult);
             }
 
@@ -422,7 +423,14 @@ namespace System.Web.OData.OData.Query.Aggregation
                     var implementation = SamplingMethodsImplementations.GetAggregationImplementation(samplingMethod);
                     MethodInfo method = implementation.GetSamplingProcessingMethod(propertyType);
 
-                    bindings.Add(Expression.Bind(mi, ApplyImplementationBase.GetComputedPropertyExpression(keyType, statement, entityParam, method, selectedProperyExpression)));
+                    Expression[] aggregationParamsExpressions = null;
+                    string[] aggregationParams = AggregationImplementationBase.GetAggregationParams(samplingMethod);
+                    if (aggregationParams != null && aggregationParams.Any())
+                    {
+                        aggregationParamsExpressions = aggregationParams.Select(p => Expression.Constant(p)).ToArray();
+                    }
+
+                    bindings.Add(Expression.Bind(mi, ApplyImplementationBase.GetComputedPropertyExpression(keyType, statement, entityParam, method, selectedProperyExpression, aggregationParamsExpressions)));
                 }
             }
 

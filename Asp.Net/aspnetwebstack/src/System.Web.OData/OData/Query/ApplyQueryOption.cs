@@ -138,7 +138,8 @@ namespace System.Web.OData.OData.Query
                         }
 
                         var projectionLambda = AggregationImplementationBase.GetProjectionLambda(this.Context.ElementClrType, aggregateClause, propertyToAggregateExpression);
-                        var aggragationResult = aggregationImplementation.DoAggregatinon(this.Context.ElementClrType, queryToUse, aggregateClause, projectionLambda);
+                        string[] aggregationParams = AggregationImplementationBase.GetAggregationParams(aggregateClause.AggregationMethod);
+                        var aggragationResult = aggregationImplementation.DoAggregatinon(this.Context.ElementClrType, queryToUse, aggregateClause, projectionLambda, aggregationParams);
                         var aliasType = aggregationImplementation.GetResultType(this.Context.ElementClrType, aggregateClause);
 
                         results = this.ProjectResult(aggragationResult, aggregateClause.Alias, aliasType);

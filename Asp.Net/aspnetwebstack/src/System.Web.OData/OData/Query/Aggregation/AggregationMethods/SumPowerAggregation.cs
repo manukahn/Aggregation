@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text;
+using System.Threading.Tasks;
 using System.Web.Http;
 using Microsoft.OData.Core.UriParser.Semantic;
 
@@ -9,9 +12,15 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
     /// <summary>
     /// Implementation of Average aggregation method
     /// </summary>
-    [AggregationMethod("average")]
-    public class AverageAggregation : AggregationImplementationBase
+    [AggregationMethod("sumpower")]
+    public class SumPowerAggregation : AggregationImplementationBase
     {
+
+        public static double TotalSqrt(IQueryable input, double pwr)
+        {
+            return input.AllElements().Cast<double>().Sum(i => Math.Pow(i, pwr));
+        }
+
         /// <summary>
         /// Implement the Average aggregation method
         /// </summary>
@@ -21,10 +30,13 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <param name="propertyToAggregateExpression">Projection Expression that defines access to the property to aggregate</param>
         /// <param name="parematers">A list of string parameters sent to the aggregation method</param>
         /// <returns>The Sum result</returns>
-        public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
+        public override object DoAggregatinon(Type elementType, IQueryable collection, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
         {
-            var resultType = this.GetResultType(elementType, transformation);
-            return ExpressionHelpers.SelectAndAverage(query, elementType, resultType, propertyToAggregateExpression);
+            var pwr = double.Parse(parameters.First());
+            var aggregatedProperyType = GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
+            var selectedValues = GetItemsToQuery(elementType, collection, propertyToAggregateExpression, aggregatedProperyType);
+
+            return TotalSqrt(selectedValues, pwr);
         }
 
         /// <summary>

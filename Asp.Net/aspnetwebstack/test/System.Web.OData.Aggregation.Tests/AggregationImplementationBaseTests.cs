@@ -111,7 +111,7 @@ namespace System.Web.OData.Aggregation.Tests
         }
 
 
-        public override object DoAggregatinon(Type elementType, IQueryable query, Microsoft.OData.Core.UriParser.Semantic.ApplyAggregateClause transformation, Linq.Expressions.LambdaExpression propertyToAggregateExpression)
+        public override object DoAggregatinon(Type elementType, IQueryable query, Microsoft.OData.Core.UriParser.Semantic.ApplyAggregateClause transformation, Linq.Expressions.LambdaExpression propertyToAggregateExpression, params string[] parameters)
         {
             throw new NotImplementedException();
         }

@@ -42,13 +42,19 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <returns>The implementation class of the aggregation method</returns>
         public static T GetAggregationImplementation(string aggregationFunction)
         {
+            string methodToLookFor = aggregationFunction;
+            if (aggregationFunction.Contains('('))
+            {
+                methodToLookFor = aggregationFunction.Substring(0, aggregationFunction.IndexOf('('));
+            }
+
             T result;
-            if (customAggregations.TryGetValue(aggregationFunction.ToLower(), out result))
+            if (customAggregations.TryGetValue(methodToLookFor.ToLower(), out result))
             {
                 return result;
             }
 
-            throw Error.NotSupported("Aggregation method not supported", aggregationFunction);
+            throw Error.NotSupported("Aggregation method not supported", methodToLookFor);
         }
 
         /// <summary>

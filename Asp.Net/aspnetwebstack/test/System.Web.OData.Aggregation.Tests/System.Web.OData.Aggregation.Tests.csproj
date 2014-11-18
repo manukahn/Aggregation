@@ -46,15 +46,11 @@
     </Reference>
     <Reference Include="Microsoft.OData.Core, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.OData.Aggregation.1.0.0\lib\net45\Microsoft.OData.Core.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.OData.Aggregation.1.0.1\lib\net45\Microsoft.OData.Core.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.OData.Edm, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.OData.Aggregation.1.0.0\lib\net45\Microsoft.OData.Edm.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Spatial, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\Microsoft.OData.Aggregation.1.0.0\lib\net45\Microsoft.Spatial.dll</HintPath>
+      <HintPath>..\..\packages\Microsoft.OData.Aggregation.1.0.1\lib\net45\Microsoft.OData.Edm.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>

@@ -73,7 +73,7 @@ namespace System.Web.OData.Aggregation.Tests
         {
             var entityParam = Expression.Parameter(typeof(Sales), "e");
             var mi = typeof(Sales).GetMethod("DummyString");
-            var result = ApplyImplementationBase.GetComputedPropertyExpression(typeof(Sales), @"Product/Category/Name", entityParam, mi, null);
+            var result = ApplyImplementationBase.GetComputedPropertyExpression(typeof(Sales), @"Product/Category/Name", entityParam, mi, null,null);
 
             "after creating expression".Then(() => result.Should().NotBeNull());
             "After creating expression".Then(() => result.ToString().Should().BeEquivalentTo

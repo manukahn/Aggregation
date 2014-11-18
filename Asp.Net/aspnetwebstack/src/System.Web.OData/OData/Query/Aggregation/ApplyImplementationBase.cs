@@ -160,10 +160,11 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <param name="entityParam">The parameter on which the expression is based.</param>
         /// <param name="methodToExecute">The method to call.</param>
         /// <param name="selectedProperyExpression">An expression representing access to the property to group by.</param>
+        /// <param name="samplingParametersExpressions">A list of parameters to the sampling method</param>
         /// <param name="originalPropertyPath">The property path of the property to retrieve that was used originally used (out side recursion).</param>
         /// <returns>An Expression that defines projection.</returns>
         internal static Expression GetComputedPropertyExpression(Type entityType, string propertyPath,
-            ParameterExpression entityParam, MethodInfo methodToExecute, Expression selectedProperyExpression, string originalPropertyPath = null)
+            ParameterExpression entityParam, MethodInfo methodToExecute, Expression selectedProperyExpression, Expression[] samplingParametersExpressions, string originalPropertyPath = null)
         {
             if (originalPropertyPath == null)
             {
@@ -172,9 +173,24 @@ namespace System.Web.OData.OData.Query.Aggregation
 
             if (!propertyPath.Contains('/'))
             {
-                return ((selectedProperyExpression != null)
-                    ? Expression.Call(null, methodToExecute, selectedProperyExpression)
-                    : Expression.Call(null, methodToExecute, GetProjectionExpression(originalPropertyPath, entityParam)));
+                Expression[] arguments;
+
+                var selectedProperty = (selectedProperyExpression != null)
+                    ? selectedProperyExpression
+                    : GetProjectionExpression(originalPropertyPath, entityParam);
+
+                if ((samplingParametersExpressions == null) || (!samplingParametersExpressions.Any()))
+                {
+                    arguments = new Expression[] { selectedProperty };
+                }
+                else
+                {
+                    var lst = new List<Expression>() { selectedProperty };
+                    lst.AddRange(samplingParametersExpressions);
+                    arguments = lst.ToArray();
+                }
+
+                return Expression.Call(null, methodToExecute, arguments);
             }
 
             var propertyInfos = GetPropertyInfo(entityType, propertyPath);
@@ -192,6 +208,7 @@ namespace System.Web.OData.OData.Query.Aggregation
                 entityParam,
                 methodToExecute,
                 selectedProperyExpression,
+                samplingParametersExpressions,
                 originalPropertyPath);
 
             var binding = Expression.Bind(computedProperty, propertyExpression);

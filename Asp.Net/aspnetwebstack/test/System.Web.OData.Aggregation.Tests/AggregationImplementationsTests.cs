@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web.OData.Aggregation.Tests.Common;
 using System.Web.OData.OData.Query.Aggregation;
 using System.Web.OData.OData.Query.Aggregation.SamplingMethods;
 using FluentAssertions;
+using Microsoft.OData.Core.UriParser.Semantic;
 using Xbehave;
 using Xunit;
+using Xunit.Extensions;
 
 namespace System.Web.OData.Aggregation.Tests
 {
@@ -74,6 +77,32 @@ namespace System.Web.OData.Aggregation.Tests
 
             "unsupported Exception is thrown".Then(() => exception.Should().BeOfType<NotSupportedException>());
 
+        }
+
+        [Scenario]
+        [PropertyData("GetMethodsStrings")]
+        public void ParseParamenters(string methodString)
+        {
+           string[] res = null;
+           
+            "Do parsing".When(()=> res = AggregationImplementationBase.GetAggregationParams(methodString));
+            "check results".Then(() => res.Count().Should().Be(3));
+            "check results".Then(() => res.First().Should().Be("a"));
+            "check results".Then(() => res.Last().Should().Be("c"));
+        }
+
+
+        public static TheoryDataSet<string> GetMethodsStrings
+        {
+            get
+            {
+                return new TheoryDataSet<string>()
+                {
+                    "Sum(a,b,c)",
+                    "Sum(((a,b,c)", 
+                    "Sum(a,b,c)))", 
+                };
+            }
         }
     }
 }

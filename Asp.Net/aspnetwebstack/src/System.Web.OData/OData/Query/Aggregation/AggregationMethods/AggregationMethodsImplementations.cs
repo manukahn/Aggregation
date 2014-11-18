@@ -19,6 +19,7 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
             AggregationMethodsImplementations.RegisterAggregationImplementation("min", new MinAggregation());
             AggregationMethodsImplementations.RegisterAggregationImplementation("max", new MaxAggregation());
             AggregationMethodsImplementations.RegisterAggregationImplementation("countdistinct", new CountDistinctAggregation());
+            AggregationMethodsImplementations.RegisterAggregationImplementation("sumpower", new SumPowerAggregation());
         }
 
         /// <summary>

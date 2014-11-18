@@ -144,6 +144,24 @@ namespace System.Web.OData.Aggregation.Tests
                 days.Contains(day.ToString()).Should().BeTrue();
             });
         }
+
+        [Scenario]
+        public void DoGroupByValidCheckSamplingHourInDayMethods()
+        {
+            
+            IQueryable results = null;
+            "Do groupby on hour in day of sales".Given(() => results = DoGroupBy("groupby(Time with hourinday(ETC) as hour)"));
+            "Result should be a hour".Then(() =>
+            {
+                var item = results.First();
+                var t = item.GetType();
+                t.GetProperty("hour").Should().NotBeNull();
+                var hour = t.GetProperty("hour").GetValue(item);
+                var res = (int)hour <= 24;
+                res.Should().BeTrue();
+
+            });
+        }
         
         [Scenario]
         public void DoGroupByValidCheckSamplingRoundMethods1()

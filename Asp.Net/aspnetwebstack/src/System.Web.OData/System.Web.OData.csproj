@@ -114,6 +114,7 @@
     <Compile Include="OData\Query\Aggregation\AggregationExtensionMethods.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationImplementationBase.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationMethods\AggregationMethodsImplementations.cs" />
+    <Compile Include="OData\Query\Aggregation\AggregationMethods\SumPowerAggregation.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationTypesGenerator.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationImplementations.cs" />
     <Compile Include="OData\Query\Aggregation\ApplyImplementationBase.cs" />
@@ -135,6 +136,7 @@
     <Compile Include="OData\Query\Aggregation\SamplingImplementationBase.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationMethods\SumAggregation.cs" />
     <Compile Include="OData\Query\Aggregation\SamplingMethods\DaysOfWeekSampling.cs" />
+    <Compile Include="OData\Query\Aggregation\SamplingMethods\HourOfDay.cs" />
     <Compile Include="OData\Query\Aggregation\SamplingMethods\RoundSampling.cs" />
     <Compile Include="OData\Query\Aggregation\SamplingMethods\SamplingMethodsImplementations.cs" />
     <Compile Include="OData\Query\ApplyQueryOption.cs" />

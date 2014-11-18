@@ -19,8 +19,9 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <param name="collection">The collection on which to execute.</param>
         /// <param name="transformation">The name of the aggregation transformation.</param>
         /// <param name="propertyToAggregateExpression">Expression to the property to aggregate.</param>
+        /// <param name="parematers">A list of string parameters sent to the aggregation method</param>
         /// <returns>The result of the aggregation.</returns>
-        public abstract object DoAggregatinon(Type elementType, IQueryable collection, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression);
+        public abstract object DoAggregatinon(Type elementType, IQueryable collection, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters);
 
         /// <summary>
         /// Determines the type that is returned from the aggregation method. 
@@ -125,6 +126,32 @@ namespace System.Web.OData.OData.Query.Aggregation
             var selected =
                 (ExpressionHelpers.QueryableSelect(query, elementType, aggregatedPropertyType, propertyToAggregateExpression)).AsQueryable();
             return selected;
+        }
+
+        /// <summary>
+        /// Parse a list of arguments from the method string 
+        /// </summary>
+        /// <param name="aggragationMethod">The method string</param>
+        /// <returns>List of arguments</returns>
+        internal static string[] GetAggregationParams(string aggragationMethod)
+        {
+            if (aggragationMethod.Contains('(') && aggragationMethod.Contains(')'))
+            {
+                var start = aggragationMethod.LastIndexOf('(');
+                var end = aggragationMethod.IndexOf(')');
+                if (end == start + 1)
+                {
+                    return null;
+                }
+                if (end <= start)
+                {
+                    throw new ArgumentException("Invalid parameters string");
+                }
+
+                return aggragationMethod.Substring(start + 1, end - start - 1).Split(',');
+            }
+
+            return null;
         }
     }
 }

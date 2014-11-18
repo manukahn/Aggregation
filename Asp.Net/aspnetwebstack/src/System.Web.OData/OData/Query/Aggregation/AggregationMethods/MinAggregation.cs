@@ -19,8 +19,9 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <param name="query">The collection</param>
         /// <param name="transformation">The transformation clause created by the parser</param>
         /// <param name="propertyToAggregateExpression">Projection Expression that defines access to the property to aggregate</param>
-        /// <returns>The Min result.</returns>
-        public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression)
+        /// <param name="parematers">A list of string parameters sent to the aggregation method</param>
+        /// <returns>The Sum result</returns>
+        public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
         {
             var resultType = this.GetResultType(elementType, transformation);
             var selected = (ExpressionHelpers.QueryableSelect(query, elementType, resultType, propertyToAggregateExpression)).AsQueryable();
@@ -38,11 +39,11 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <returns>The type of the aggregation result.</returns>
         public override Type GetResultType(Type elementType, ApplyAggregateClause transformation)
         {
-            return GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
+            return this.GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
         }
 
         /// <summary>
-        /// Combine temporary results. This is useful when queryable is split due to max page size. 
+        /// Combine temporary results. This is useful when QUERIABLE is split due to max page size. 
         /// </summary>
         /// <param name="temporaryResults">The results to combine, as <see cref="<Tuple<object, int>"/> when item1 is the result 
         /// and item2 is the number of elements that produced this temporary result</param>
@@ -50,7 +51,9 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         public override object CombineTemporaryResults(List<Tuple<object, int>> temporaryResults)
         {
             if (temporaryResults.Count() == 1)
+            {
                 return temporaryResults[0].Item1;
+            }
 
             var t = temporaryResults[0].Item1.GetType();
             switch (t.Name)
