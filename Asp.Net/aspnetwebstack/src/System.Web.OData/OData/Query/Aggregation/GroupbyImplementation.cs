@@ -199,13 +199,22 @@ namespace System.Web.OData.OData.Query.Aggregation
                     if (samplingMethod != null)
                     {
                         var pi = this.Context.ElementClrType.GetProperty(samplingProperty);
+                        if (pi == null)
+                        {
+                            throw new ArgumentException(string.Format("Entity does not contain {0}", samplingProperty));
+                        }
                         var implementation = SamplingMethodsImplementations.GetAggregationImplementation(samplingMethod);
                         var samplingType = implementation.GetResultType(pi.PropertyType);
                         keyProperties.Add(new Tuple<Type, string>(samplingType, alias));
                     }
                     else
                     {
-                        var pi = this.Context.ElementClrType.GetProperty(statementString.TrimMethodCall().Split(' ').First());
+                        var propName = statementString.TrimMethodCall().Split(' ').First();
+                        var pi = this.Context.ElementClrType.GetProperty(propName);
+                        if (pi == null)
+                        {
+                            throw new ArgumentException(string.Format("Entity does not contain {0}", propName));
+                        }
                         keyProperties.Add(new Tuple<Type, string>(pi.PropertyType, pi.Name));
                     }
                 }
@@ -214,6 +223,10 @@ namespace System.Web.OData.OData.Query.Aggregation
                     // complex property
                     var propName = statement.Key.TrimMethodCall();
                     var pi = this.Context.ElementClrType.GetProperty(propName);
+                    if (pi == null)
+                    {
+                            throw new ArgumentException(string.Format("Entity does not contain {0}", propName));
+                    }
                     var newPropertyType = this.GenerateComplexType(pi.PropertyType, statement.Value);
                     keyProperties.Add(new Tuple<Type, string>(newPropertyType, propName));
                 }
@@ -423,12 +436,7 @@ namespace System.Web.OData.OData.Query.Aggregation
                     var implementation = SamplingMethodsImplementations.GetAggregationImplementation(samplingMethod);
                     MethodInfo method = implementation.GetSamplingProcessingMethod(propertyType);
 
-                    Expression[] aggregationParamsExpressions = null;
-                    string[] aggregationParams = AggregationImplementationBase.GetAggregationParams(samplingMethod);
-                    if (aggregationParams != null && aggregationParams.Any())
-                    {
-                        aggregationParamsExpressions = aggregationParams.Select(p => Expression.Constant(p)).ToArray();
-                    }
+                    var aggregationParamsExpressions = GetAggregationArgumentsExpressions(samplingMethod, method);
 
                     bindings.Add(Expression.Bind(mi, ApplyImplementationBase.GetComputedPropertyExpression(keyType, statement, entityParam, method, selectedProperyExpression, aggregationParamsExpressions)));
                 }
@@ -436,6 +444,72 @@ namespace System.Web.OData.OData.Query.Aggregation
 
             var body = Expression.MemberInit(Expression.New(keyType), bindings);
             return Expression.Lambda(body, entityParam);
+        }
+
+        /// <summary>
+        /// Get the list of parameter expression to be binded to the method call, 
+        /// If the number of arguments provided by the query does not match the method signature this method will ignore non required arguments or create arguments with default values.
+        /// </summary>
+        /// <param name="samplingMethod">The sampling method string that contain the arguments</param>
+        /// <param name="method">The <see cref="MethodInfo"/> of the sampling method to call</param>
+        /// <returns>Array of expressions</returns>
+        private static Expression[] GetAggregationArgumentsExpressions(string samplingMethod, MethodInfo method)
+        {
+            Expression[] aggregationParamsExpressions = null;
+            string[] aggregationParams = AggregationImplementationBase.GetAggregationParams(samplingMethod);
+            var expcetedParameters = method.GetParameters();
+
+            if (aggregationParams != null && aggregationParams.Any())
+            {
+                aggregationParamsExpressions = aggregationParams.Select(p => Expression.Constant(p)).ToArray();
+                
+                if (expcetedParameters.Length != aggregationParams.Length + 1)
+                {
+                    if (aggregationParams.Length > expcetedParameters.Length - 1)
+                    {
+                        var tmp = new Expression[expcetedParameters.Length - 1];
+                        Array.Copy(aggregationParamsExpressions, tmp, expcetedParameters.Length - 1);
+                        aggregationParamsExpressions = tmp;
+                    }
+                    else
+                    {
+                        var tmp = new List<Expression>();
+                        tmp.AddRange(aggregationParamsExpressions);
+                        GetDefaultArgumentsExpressions(aggregationParamsExpressions.Length, expcetedParameters.Length - 1, expcetedParameters, tmp);
+                        aggregationParamsExpressions = tmp.ToArray();
+                    }
+                }
+            }
+            else
+            {
+                var tmp = new List<Expression>();
+                GetDefaultArgumentsExpressions(0, expcetedParameters.Length - 1, expcetedParameters, tmp);
+                aggregationParamsExpressions = tmp.ToArray();
+            }
+            return aggregationParamsExpressions;
+        }
+
+        private static void GetDefaultArgumentsExpressions(int start, int stop, ParameterInfo[] expcetedParameters, List<Expression> result)
+        {
+            for (int j = start; j < stop; j++)
+            {
+                object defaultValue = null;
+                Type expectedType = expcetedParameters[j + 1].ParameterType;
+                if (expectedType == typeof(string))
+                {
+                    defaultValue = string.Empty;
+                }
+                else if (expectedType.IsEnum)
+                {
+                    defaultValue = Enum.GetValues(expectedType).GetValue(0);
+                }
+                else if (!expectedType.IsClass)
+                {
+                    defaultValue = 0;
+                }
+
+                result.Add(Expression.Constant(defaultValue));
+            }
         }
     }
 }
