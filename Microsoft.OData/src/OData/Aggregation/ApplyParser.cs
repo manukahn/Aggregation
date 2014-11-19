@@ -258,6 +258,15 @@ namespace Microsoft.OData.Core.Aggregation
             }
 
             var selectedStatements = selectQuery.Split(',');
+            var withIndex = selectQuery.IndexOf("with");
+            if (withIndex > 0)
+            {
+                selectedStatements = selectQuery.Substring(0, withIndex).Split(',');
+                var withStatement = selectQuery.Substring(withIndex, selectQuery.Length - withIndex);
+                selectedStatements[selectedStatements.Count() - 1] =
+                    selectedStatements[selectedStatements.Count() - 1] + withStatement;
+            }
+
             string aggregationMethod, alias;
             List<ExpressionClause> aggregatablePropertyExpressions = null;
             try
