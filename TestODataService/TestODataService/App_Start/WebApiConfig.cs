@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web.Http;
 using System.Web.OData.Builder;
 using System.Web.OData.Extensions;
+using System.Web.UI.WebControls;
 using Microsoft.OData.Core.Aggregation;
 using Microsoft.OData.Edm;
 using Microsoft.OData.Edm.Library;
@@ -25,7 +26,7 @@ namespace TestODataService
             config.Routes.MapHttpRoute(
                 name: "DefaultApi",
                 routeTemplate: "api/{controller}/{id}",
-                defaults: new { id = RouteParameter.Optional }
+                defaults: new { id = System.Web.Http.RouteParameter.Optional }
             );
         }
 

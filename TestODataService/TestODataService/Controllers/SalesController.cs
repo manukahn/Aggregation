@@ -35,6 +35,9 @@ namespace TestODataService.Controllers
                 sales.Add(new Sales() { Id = 1, Amount = 100, Product = p1, Products = new Product[]{p1,p2,p3},  Time = DateTime.Now.AddDays(-1)});
                 sales.Add(new Sales() { Id = 11, Amount = 100, Product = p1, Products = new Product[] { p1, p2, p3 }, Time = DateTime.Now });
                 sales.Add(new Sales() { Id = 111, Amount = 100, Product = p1, Products = new Product[] { p1, p2, p3 }, Time = DateTime.Now });
+                sales.Add(new Sales() { Id = 1111, Amount = 100, Product = p1, Products = new Product[] { p1, p2, p3 }, Time = DateTime.Now.AddDays(-1) });
+                sales.Add(new Sales() { Id = 11111, Amount = 100, Product = p1, Products = new Product[] { p1, p2, p3 }, Time = DateTime.Now });
+                sales.Add(new Sales() { Id = 111111, Amount = 100, Product = p1, Products = new Product[] { p1, p2, p3 }, Time = DateTime.Now });
                 sales.Add(new Sales() { Id = 2, Amount = 20, Product = p2, Products = new Product[] { p1, p2, p3 }, Time = DateTime.Now.AddDays(-2) });
                 sales.Add(new Sales() { Id = 3, Amount = 30, Product = p2, Products = new Product[] { p1, p2, p3 }, Time = DateTime.Now });
                 sales.Add(new Sales() { Id = 4, Amount = 40, Product = p1, Products = new Product[] { p1, p2, p3 }, Time = DateTime.Now });
@@ -68,8 +71,7 @@ namespace TestODataService.Controllers
             //CreateSales();
             //return Ok(sales.AsQueryable());
 
-            //return Ok(MongoDal.GetGraph());
-            return Ok(MongoDal.GetSale(1));
+            return Ok(MongoDal.GetGraph());
         }
 
         [EnableQuery(PageSize = 20)]
