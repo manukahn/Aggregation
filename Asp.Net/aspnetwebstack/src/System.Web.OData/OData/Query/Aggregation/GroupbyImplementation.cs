@@ -456,16 +456,15 @@ namespace System.Web.OData.OData.Query.Aggregation
         private static Expression[] GetAggregationArgumentsExpressions(string samplingMethod, MethodInfo method)
         {
             Expression[] aggregationParamsExpressions = null;
-            string[] aggregationParams = AggregationImplementationBase.GetAggregationParams(samplingMethod);
+            string[] aggregationParamsAsStrings = AggregationImplementationBase.GetAggregationParams(samplingMethod);
             var expcetedParameters = method.GetParameters();
 
-            if (aggregationParams != null && aggregationParams.Any())
+            if (aggregationParamsAsStrings != null && aggregationParamsAsStrings.Any())
             {
-                aggregationParamsExpressions = aggregationParams.Select(p => Expression.Constant(p)).ToArray();
-                
-                if (expcetedParameters.Length != aggregationParams.Length + 1)
+                aggregationParamsExpressions = ParseAggregationParams(aggregationParamsAsStrings, expcetedParameters);
+                if (expcetedParameters.Length != aggregationParamsAsStrings.Length + 1)
                 {
-                    if (aggregationParams.Length > expcetedParameters.Length - 1)
+                    if (aggregationParamsAsStrings.Length > expcetedParameters.Length - 1)
                     {
                         var tmp = new Expression[expcetedParameters.Length - 1];
                         Array.Copy(aggregationParamsExpressions, tmp, expcetedParameters.Length - 1);
@@ -489,15 +488,80 @@ namespace System.Web.OData.OData.Query.Aggregation
             return aggregationParamsExpressions;
         }
 
+        private static Expression[] ParseAggregationParams(string[] aggregationParamsAsStrings,
+            ParameterInfo[] expcetedParameters)
+        {
+            Expression[] aggregationParamsExpressions;
+            var argumentList = new List<Expression>();
+            for (int i = 0; i < aggregationParamsAsStrings.Length; i++)
+            {
+                var aggregationParamAsString = aggregationParamsAsStrings[i];
+                if (expcetedParameters.Length >= i)
+                {
+                    var expectedParamater = expcetedParameters[i + 1];
+                    if (expectedParamater.ParameterType == typeof(string))
+                    {
+                        argumentList.Add(Expression.Constant(aggregationParamAsString));
+                    }
+                    else if (expectedParamater.ParameterType == typeof(bool))
+                    {
+                        argumentList.Add(Expression.Constant(bool.Parse(aggregationParamAsString.ToLower())));
+                    }
+                    else if (expectedParamater.ParameterType == typeof(int))
+                    {
+                        argumentList.Add(Expression.Constant(int.Parse(aggregationParamAsString)));
+                    }
+                    else if (expectedParamater.ParameterType == typeof(long))
+                    {
+                        argumentList.Add(Expression.Constant(long.Parse(aggregationParamAsString)));
+                    }
+                    else if (expectedParamater.ParameterType == typeof(double))
+                    {
+                        argumentList.Add(Expression.Constant(double.Parse(aggregationParamAsString)));
+                    }
+                    else if (expectedParamater.ParameterType == typeof(byte))
+                    {
+                        argumentList.Add(Expression.Constant(byte.Parse(aggregationParamAsString)));
+                    }
+                    else if (expectedParamater.ParameterType == typeof(short))
+                    {
+                        argumentList.Add(Expression.Constant(short.Parse(aggregationParamAsString)));
+                    }
+                    else if (expectedParamater.ParameterType == typeof(char))
+                    {
+                        argumentList.Add(Expression.Constant(char.Parse(aggregationParamAsString)));
+                    }
+                    else if (expectedParamater.ParameterType == typeof(float))
+                    {
+                        argumentList.Add(Expression.Constant(float.Parse(aggregationParamAsString)));
+                    }
+                    else if (expectedParamater.ParameterType == typeof(DateTimeOffset))
+                    {
+                        argumentList.Add(Expression.Constant(DateTimeOffset.Parse(aggregationParamAsString)));
+                    }
+                }
+            }
+            aggregationParamsExpressions = argumentList.ToArray();
+            return aggregationParamsExpressions;
+        }
+
         private static void GetDefaultArgumentsExpressions(int start, int stop, ParameterInfo[] expcetedParameters, List<Expression> result)
         {
             for (int j = start; j < stop; j++)
             {
                 object defaultValue = null;
                 Type expectedType = expcetedParameters[j + 1].ParameterType;
-                if (expectedType == typeof(string))
+                if (expcetedParameters[j + 1].IsOptional)
+                {
+                    defaultValue = expcetedParameters[j + 1].DefaultValue;
+                }
+                else if (expectedType == typeof(string))
                 {
                     defaultValue = string.Empty;
+                }
+                else if (expectedType == typeof(bool))
+                {
+                    defaultValue = false;
                 }
                 else if (expectedType.IsEnum)
                 {

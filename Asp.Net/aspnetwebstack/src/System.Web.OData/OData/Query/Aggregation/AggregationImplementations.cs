@@ -66,7 +66,7 @@ namespace System.Web.OData.OData.Query.Aggregation
         {
             if (implementation != null)
             {
-                customAggregations[aggregationFunctionName] = implementation;
+                customAggregations[aggregationFunctionName.ToLower()] = implementation;
             }
         }
         
@@ -78,7 +78,7 @@ namespace System.Web.OData.OData.Query.Aggregation
         {
             if (customAggregations.ContainsKey(aggregationFunctionName))
             {
-                customAggregations.Remove(aggregationFunctionName);
+                customAggregations.Remove(aggregationFunctionName.ToLower());
             }
         }
     }
