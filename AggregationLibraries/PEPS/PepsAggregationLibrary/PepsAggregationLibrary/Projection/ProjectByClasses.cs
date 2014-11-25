@@ -18,6 +18,11 @@ namespace PepsAggregationLibrary.Projection
         /// <returns>The projected timestamp</returns>
         public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
         {
+            if (utc)
+            {
+                value = value.Add(-value.Offset);
+            }
+
             var second = value.Minute;
             var reminder = second % factor;
             if (reminder != 0)
@@ -49,6 +54,11 @@ namespace PepsAggregationLibrary.Projection
         /// <returns>The projected timestamp</returns>
         public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
         {
+            if (utc)
+            {
+                value = value.Add(-value.Offset);
+            }
+
             var minute = value.Minute;
             var reminder = minute % factor;
             if (reminder != 0)
@@ -80,6 +90,11 @@ namespace PepsAggregationLibrary.Projection
         /// <returns>The projected timestamp</returns>
         public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
         {
+            if (utc)
+            {
+                value = value.Add(-value.Offset);
+            }
+
             var hour = value.Hour;
             var reminder = hour % factor;
             if (reminder != 0)
@@ -111,6 +126,11 @@ namespace PepsAggregationLibrary.Projection
         /// <returns>The projected timestamp</returns>
         public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
         {
+            if (utc)
+            {
+                value = value.Add(-value.Offset);
+            }
+
             var day = value.Day - 1;
             var reminder = day % factor;
             if (reminder != 0)
@@ -144,6 +164,11 @@ namespace PepsAggregationLibrary.Projection
         /// <returns>The projected timestamp</returns>
         public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
         {
+            if (utc)
+            {
+                value = value.Add(-value.Offset);
+            }
+
             var month = value.Month - 1;
             var reminder = month % factor;
             if (reminder != 0)
@@ -178,6 +203,11 @@ namespace PepsAggregationLibrary.Projection
         /// <returns>The projected timestamp</returns>
         public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
         {
+            if (utc)
+            {
+                value = value.Add(-value.Offset);
+            }
+
             double offset = 0;
             var dayOfweek = value.DayOfWeek;
             switch (dayOfweek)
@@ -232,6 +262,11 @@ namespace PepsAggregationLibrary.Projection
         /// <returns>The projected timestamp</returns>
         public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
         {
+            if (utc)
+            {
+                value = value.Add(-value.Offset);
+            }
+
             double offset = 0;
             var dayOfweek = value.DayOfWeek;
             switch (dayOfweek)
@@ -285,6 +320,11 @@ namespace PepsAggregationLibrary.Projection
         /// <returns>The projected timestamp</returns>
         public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
         {
+            if (utc)
+            {
+                value = value.Add(-value.Offset);
+            }
+
             var year = value.Year;
             var reminder = year % factor;
             if (reminder != 0)
