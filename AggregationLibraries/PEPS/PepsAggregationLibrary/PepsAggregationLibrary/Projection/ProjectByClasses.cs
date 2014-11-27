@@ -189,6 +189,46 @@ namespace PepsAggregationLibrary.Projection
 
 
     /// <summary>
+    /// project/aggregate at Quarter level
+    /// </summary>
+    [SamplingMethod("projectByQuarter")]
+    public class ProjectByQuarter : TimeGroupingBase
+    {
+        /// <summary>
+        /// Do the sampling
+        /// </summary>
+        /// <param name="value">The timestamp</param>
+        /// <param name="utc">use UTC time zone</param>
+        /// <param name="factor">use factor of the time unit</param>
+        /// <returns>The projected timestamp</returns>
+        public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
+        {
+            return ProjectByMonth.DoSampling(value, utc, 3);
+        }
+    }
+
+
+    /// <summary>
+    /// project/aggregate at HalfYear level
+    /// </summary>
+    [SamplingMethod("projectByHalfYear")]
+    public class ProjectByHalfYear : TimeGroupingBase
+    {
+        /// <summary>
+        /// Do the sampling
+        /// </summary>
+        /// <param name="value">The timestamp</param>
+        /// <param name="utc">use UTC time zone</param>
+        /// <param name="factor">use factor of the time unit</param>
+        /// <returns>The projected timestamp</returns>
+        public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
+        {
+            return ProjectByMonth.DoSampling(value, utc, 6);
+        }
+    }
+
+
+    /// <summary>
     /// project/aggregate at ‘Week’ level
     /// </summary>
     [SamplingMethod("projectByWeekMonday")]
@@ -338,6 +378,26 @@ namespace PepsAggregationLibrary.Projection
             }
 
             return new DateTimeOffset(year, NatualValues.Month, NatualValues.DayOfMonth, NatualValues.Hour, NatualValues.Minute, NatualValues.Second, TimeSpan.FromHours(0));
+        }
+    }
+
+
+    /// <summary>
+    /// project/aggregate at ‘Global’ level
+    /// </summary>
+    [SamplingMethod("projectGlobal")]
+    public class ProjectGlobal : TimeGroupingBase
+    {
+        /// <summary>
+        /// Do the sampling
+        /// </summary>
+        /// <param name="value">The timestamp</param>
+        /// <param name="utc">use UTC time zone</param>
+        /// <param name="factor">use factor of the time unit</param>
+        /// <returns>The projected timestamp</returns>
+        public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
+        {
+            return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfMonth, NatualValues.Hour, NatualValues.Minute, NatualValues.Second, TimeSpan.FromHours(0));
         }
     }
 

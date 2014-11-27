@@ -45,5 +45,26 @@ namespace PepsAggregationLibrary
         /// Natural value for DayOfWeek
         /// </summary>
         public const int DayOfWeek = 1;
+
+        /// <summary>
+        /// Natural value for DayOfWeek
+        /// </summary>
+        public const int DayOfWeekSunday1970 = 4;
+
+        /// <summary>
+        /// Natural value for the first “Monday” week of 1970
+        /// </summary>
+        public const int DayOfWeekMonday1970 = 29;
+
+        /// <summary>
+        /// Natural value for the month of the first “Monday” week of 1970
+        /// </summary>
+        public const int MonthFirstWeekMonday1970 = 12;
+
+
+        /// <summary>
+        /// Natural value for the year of the first “Monday” week of 1970
+        /// </summary>
+        public const int YearFirstWeekMonday1970 = 1969;
     }
 }

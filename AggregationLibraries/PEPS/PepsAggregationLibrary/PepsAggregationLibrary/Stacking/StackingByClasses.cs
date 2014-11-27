@@ -9,10 +9,10 @@ using PepsAggregationLibrary.Projection;
 namespace PepsAggregationLibrary.Stacking
 {
     /// <summary>
-    /// stack/aggregate at ‘Year’ level
+    /// stack/aggregate at ‘Month’ level (omit the year)
     /// </summary>
-    [SamplingMethod("stackByYear")]
-    public class StackingByYearClasses : TimeGroupingBase
+    [SamplingMethod("stackByMonth")]
+    public class StackingByMonthClasses : TimeGroupingBase
     {
         /// <summary>
         /// Do the sampling
@@ -47,10 +47,10 @@ namespace PepsAggregationLibrary.Stacking
     }
 
     /// <summary>
-    /// stack/aggregate at ‘Month’ level
+    /// stack/aggregate at ‘Day’ level (omit the year and month)
     /// </summary>
-    [SamplingMethod("stackByMonth")]
-    public class StackingByMonthClasses : TimeGroupingBase
+    [SamplingMethod("stackByDay")]
+    public class StackingByDayClasses : TimeGroupingBase
     {
         /// <summary>
         /// Do the sampling
@@ -103,43 +103,10 @@ namespace PepsAggregationLibrary.Stacking
             if (utc)
             {
                 value = value.Add(-value.Offset);
+                return new DateTimeOffset(NatualValues.YearFirstWeekMonday1970, NatualValues.MonthFirstWeekMonday1970, NatualValues.DayOfWeekMonday1970, value.Hour, value.Minute, value.Second, TimeSpan.FromHours(0));
             }
 
-            double offset = 0;
-            var dayOfweek = value.DayOfWeek;
-            switch (dayOfweek)
-            {
-                case DayOfWeek.Sunday:
-                    offset = -(6 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Monday:
-                    offset = -(0 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Tuesday:
-                    offset = -(1 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Wednesday:
-                    offset = -(2 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Thursday:
-                    offset = -(3 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Friday:
-                    offset = -(4 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Saturday:
-                    offset = -(5 + ((factor - 1) * 7));
-                    break;
-            }
-
-            value = value.AddDays(offset);
-
-            if (!utc)
-            {
-                return new DateTimeOffset(NatualValues.Year, NatualValues.Month, value.Day, value.Hour, value.Minute, value.Second, value.Offset);
-            }
-
-            return new DateTimeOffset(NatualValues.Year, NatualValues.Month, value.Day, value.Hour, value.Minute, value.Second, TimeSpan.FromHours(0));
+            return new DateTimeOffset(NatualValues.YearFirstWeekMonday1970, NatualValues.MonthFirstWeekMonday1970, NatualValues.DayOfWeekMonday1970, value.Hour, value.Minute, value.Second, value.Offset);
         }
     }
 
@@ -147,8 +114,8 @@ namespace PepsAggregationLibrary.Stacking
     /// <summary>
     /// stack/aggregate at ‘Week’ level
     /// </summary>
-    [SamplingMethod("stackByWeekSunday")]
-    public class StackByWeekSunday : TimeGroupingBase
+    [SamplingMethod("stackByDayOfWeekSunday")]
+    public class StackByDayOfWeekSunday : TimeGroupingBase
     {
         /// <summary>
         /// Do the sampling
@@ -162,51 +129,19 @@ namespace PepsAggregationLibrary.Stacking
             if (utc)
             {
                 value = value.Add(-value.Offset);
+                return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfWeekSunday1970, value.Hour, value.Minute, value.Second, TimeSpan.FromHours(0));
             }
 
-            double offset = 0;
-            var dayOfweek = value.DayOfWeek;
-            switch (dayOfweek)
-            {
-                case DayOfWeek.Sunday:
-                    offset = -(0 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Monday:
-                    offset = -(1 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Tuesday:
-                    offset = -(2 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Wednesday:
-                    offset = -(3 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Thursday:
-                    offset = -(4 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Friday:
-                    offset = -(5 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Saturday:
-                    offset = -(6 + ((factor - 1) * 7));
-                    break;
-            }
+            return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfWeekSunday1970, value.Hour, value.Minute, value.Second, value.Offset);
 
-            value = value.AddDays(offset);
-
-            if (!utc)
-            {
-                return new DateTimeOffset(NatualValues.Year, NatualValues.Month, value.Day, value.Hour, value.Minute, value.Second, value.Offset);
-            }
-
-            return new DateTimeOffset(NatualValues.Year, NatualValues.Month, value.Day, value.Hour, value.Minute, value.Second, TimeSpan.FromHours(0));
         }
     }
 
     /// <summary>
-    /// stack/aggregate at ‘Day’ level
+    /// stack/aggregate at ‘Day’ level (omit the year, month and day)
     /// </summary>
-    [SamplingMethod("stackByDay")]
-    public class StackingByDayClasses : TimeGroupingBase
+    [SamplingMethod("stackByHour")]
+    public class StackingByHourClasses : TimeGroupingBase
     {
         /// <summary>
         /// Do the sampling
@@ -239,10 +174,10 @@ namespace PepsAggregationLibrary.Stacking
     }
 
     /// <summary>
-    /// stack/aggregate at ‘Hour’ level
+    /// stack/aggregate at ‘Hour’ level (omit the year, month, day and hour)
     /// </summary>
-    [SamplingMethod("stackByHour")]
-    public class StackingByHourClasses : TimeGroupingBase
+    [SamplingMethod("stackByMinute")]
+    public class StackingByMinuteClasses : TimeGroupingBase
     {
         /// <summary>
         /// Do the sampling
@@ -275,10 +210,10 @@ namespace PepsAggregationLibrary.Stacking
     }
 
     /// <summary>
-    /// stack/aggregate at ‘Minute’ level
+    /// stack/aggregate at ‘Second’ level (omit the year, month, day, hour and minute)
     /// </summary>
-    [SamplingMethod("stackByMinute")]
-    public class StackingByMinuteClasses : TimeGroupingBase
+    [SamplingMethod("stackBySecond")]
+    public class StackingBySecondClasses : TimeGroupingBase
     {
         /// <summary>
         /// Do the sampling
