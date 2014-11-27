@@ -35,6 +35,14 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         public int MaxResults { get; private set; }
 
         /// <summary>
+        /// Gets the underlyingProvider that the InterceptingProvider wraps
+        /// </summary>
+        public IQueryProvider UnderlyingProvider
+        {
+            get { return this._underlyingProvider; }
+        }
+
+        /// <summary>
         /// Create a new <see cref="InterceptingProvider"/> and set its visitors.
         /// </summary>
         /// <typeparam name="T">Element type.</typeparam>

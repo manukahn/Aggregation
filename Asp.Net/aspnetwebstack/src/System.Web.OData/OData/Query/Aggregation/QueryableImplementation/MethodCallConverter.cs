@@ -17,7 +17,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         private IQueryProvider _provider;
         private Dictionary<Expression, QueryableRecord> _baseCollections;
         private int _skip;
-        private MethodInfo GetRealQueriable_mi;
+        private MethodInfo tryGetRealQueriable_mi;
 
         /// <summary>
         /// Create a new <see cref="MethodCallConverter"/>
@@ -27,12 +27,12 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         /// <param name="maxCollectionSize">The max number of results allowed in a single transaction against a persistence provider.</param>
         internal MethodCallConverter(IQueryProvider provider, Dictionary<Expression, QueryableRecord> baseCollections, int maxCollectionSize = 2000)
         {
-            _provider = provider;
-            MaxCollectionSize = maxCollectionSize;
-            _baseCollections = baseCollections;
-            GetRealQueriable_mi = typeof(MethodCallConverter)
+            this._provider = provider;
+            this.MaxCollectionSize = maxCollectionSize;
+            this._baseCollections = baseCollections;
+            this.tryGetRealQueriable_mi = typeof(MethodCallConverter)
                 .GetMethods()
-                .FirstOrDefault(mi => mi.IsGenericMethod && mi.Name == "GetRealQueriable");
+                .FirstOrDefault(mi => mi.IsGenericMethod && mi.Name == "TryGetRealQueriable");
         }
 
         /// <summary>
@@ -60,14 +60,28 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         /// <returns>The expression after being visited.</returns>
         protected override Expression VisitMethodCall(MethodCallExpression m)
         {
-            IEnumerable<Expression> args = this.VisitExpressionList(m.Arguments);
+            int index = _skip;
+            bool limitReached = false;
+            var newRecord = new QueryableRecord();
 
+            var elementType = m.Method.GetGenericArguments().FirstOrDefault();
+            if (elementType != null)
+            {
+                var realQueriable = this.TryGetRealQueriable(m, elementType, ref index, out limitReached);
+                if (realQueriable != null)
+                {
+                    newRecord.RealQueryable = realQueriable;
+                    newRecord.IndexInOriginalQueryable += index;
+                    newRecord.LimitReached = limitReached;
+                    this._baseCollections.Add(m, newRecord);
+                    return m;
+                }
+            }
+
+            IEnumerable<Expression> args = this.VisitExpressionList(m.Arguments);
             if ((args.Count() > 0) && (typeof(IQueryable).IsAssignableFrom(args.First().Type)))
             {
                 var key = m.Arguments[0]; // get the collection on which this method should run
-                var elementType = m.Method.GetGenericArguments().First();
-                var newRecord = new QueryableRecord();
-
                 if (_baseCollections.ContainsKey(key))
                 {
                     // create a new argument list that start with the collection to query
@@ -87,21 +101,11 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
                     this._baseCollections.Add(m, newRecord);
                     return convertedExpression;
                 }
-
-                // getting here means that the expression expresses the basic collection to query, without any method calls on top
-                // Here we create a record that contain an enumeration of this collection referred as "RealQueryable". 
-                // other expression (i.e. method calls) which are dependent on this basic collection will be altered to query against the RealQueryable
-                int index = _skip;
-                bool limitReached = false;
-                newRecord.RealQueryable = this.GetRealQueriable(m, elementType, ref index, out limitReached);
-                newRecord.IndexInOriginalQueryable += index;
-                newRecord.LimitReached = limitReached;
-                this._baseCollections.Add(m, newRecord);
-
                 return m;
             }
             return base.VisitMethodCall(m);
         }
+        
 
         /// <summary>
         /// Enumerate a collection expressed in the <see cref="MethodCallExpression"/> and bring it to memory.
@@ -111,7 +115,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         /// <param name="index">The index in the original collection after enumeration.</param>
         /// <param name="limitReached">Was the max number of elements allowed to query in a single transaction reached.</param>
         /// <returns>An enumeration of the collection expressed in the <see cref="MethodCallExpression"/>.</returns>
-        public IQueryable GetRealQueriable<T>(MethodCallExpression m, ref int index, out bool limitReached)
+        public IQueryable TryGetRealQueriable<T>(MethodCallExpression m, ref int index, out bool limitReached)
         {
             var methodToCall = m;
             if (this._skip > 0)
@@ -122,61 +126,26 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             object res = null;
             try
             {
-                res = this._provider.Execute(methodToCall);
+                if (this._provider is InterceptingProvider)
+                {
+                    res = (this._provider as InterceptingProvider).UnderlyingProvider.Execute(methodToCall);
+                }
+                else
+                {
+                    res = this._provider.Execute(methodToCall);
+                }
+                
             }
-            catch (NotSupportedException)
+            catch (Exception) // Usually NotSupportedException but we cannot be sure as it depends on the provider 
             {
-                // If the unsupported method is the lowest in the expression tree method calls we will have to execute it in memory and return the result as the RealQueriable
-                return this.ExecuteUnsupportedMethodInMemory<T>(m, ref index, out limitReached);
+                limitReached = false;
+                return null;
             }
 
+            // return the in-memory collection
             return this.GetElements<T>(ref index, out limitReached, res);
         }
-
-        /// <summary>
-        ///  Execute an unsupported method by bringing the IQueryable into memory and run the method on a memory collection.
-        /// </summary>
-        /// <typeparam name="T">The type of elements in the collection.</typeparam>
-        /// <param name="m">Method call expression to execute.</param>
-        /// <param name="index">The index in the original collection after enumeration.</param>
-        /// <param name="limitReached">Was the max number of elements allowed to query in a single transaction reached.</param>
-        /// <returns>An enumeration of the collection expressed in the <see cref="MethodCallExpression"/>.</returns>
-        private IQueryable ExecuteUnsupportedMethodInMemory<T>(MethodCallExpression m, ref int index, out bool limitReached)
-        {
-            var methodToCall = m;
-            if (this._skip > 0)
-            {
-                methodToCall = ExpressionHelpers.Skip(m, this._skip, typeof(T));
-            }
-
-            var newArgs = new List<Expression>();
-            var queriableArg = methodToCall.Arguments.First();
-            LambdaExpression lambda = Expression.Lambda(queriableArg);
-            Delegate fn = lambda.Compile();
-            var dataToload = fn.DynamicInvoke(null) as IQueryable;
-
-            var elements = this.GetElements<T>(ref index, out limitReached, dataToload);
-            newArgs.Add(Expression.Constant(elements));
-
-            newArgs.AddRange(methodToCall.Arguments.Skip(1)); // paste the original arguments (except the first) to the new list
-            var convertedExpression = Expression.Call(methodToCall.Object, methodToCall.Method, newArgs); // create a new <see cref="MethodCallExpression"/>
-
-            // Execute the new method call that runs on memory
-            LambdaExpression lambda1 = Expression.Lambda(convertedExpression);
-            Delegate fn1 = lambda1.Compile();
-            var res = fn1.DynamicInvoke(null);
-            if (res is IQueryable)
-            {
-                return res as IQueryable;
-            }
-            else
-            {
-                var tmp = new List<object>();
-                tmp.Add(res);
-                return tmp.AsQueryable();
-            }
-        }
-
+        
         /// <summary>
         /// Call the generic method GetRealQueriable of T that will Enumerate a collection expressed in the <see cref="MethodCallExpression"/> and bring it to memory.
         /// </summary>
@@ -185,10 +154,10 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         /// <param name="index">The index in the original collection after enumeration.</param>
         /// <param name="limitReached">Was the max number of elements allowed to query in a single transaction reached.</param>
         /// <returns>An enumeration of the collection expressed in the <see cref="MethodCallExpression"/>.</returns>
-        private IQueryable GetRealQueriable(MethodCallExpression m, Type elementType, ref int index, out bool limitReached)
+        private IQueryable TryGetRealQueriable(MethodCallExpression m, Type elementType, ref int index, out bool limitReached)
         {
             limitReached = false;
-            var mi = GetRealQueriable_mi.MakeGenericMethod(elementType);
+            var mi = tryGetRealQueriable_mi.MakeGenericMethod(elementType);
             var getRealQueriableArgs = new object[] { m, index, limitReached };
             var res = mi.Invoke(this, getRealQueriableArgs) as IQueryable;
             index = (int)getRealQueriableArgs[1];
