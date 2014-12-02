@@ -79,11 +79,11 @@ namespace System.Web.OData.Aggregation.Tests
 
             ExternalMethodsHandler handler = null;
             int numberOfRegisteredMethods = 0;
-            "".Given(() => handler = new ExternalMethodsHandler() {RemoteFileUri = new Uri(realPath)});
+            "".Given(() => handler = new ExternalMethodsHandler() {RemoteFilesUris = new Uri[] {new Uri(realPath)}});
             "".Then(() => numberOfRegisteredMethods = handler.RegisterExternalMethods());
             "".Then(
                 () =>
-                    handler.AggregationMethodsAssembly.GetName().Name
+                    handler.AggregationMethodsAssemblies.First().GetName().Name
                         .Should()
                         .Be(Assembly.GetExecutingAssembly().GetName().Name));
             "".Then(() => numberOfRegisteredMethods.Should().Be(2));
@@ -98,11 +98,11 @@ namespace System.Web.OData.Aggregation.Tests
 
             ExternalMethodsHandler handler = null;
             int numberOfRegisteredMethods = 0;
-            "".Given(() => handler = new ExternalMethodsHandler() {RemoteFileUri = new Uri(externalAssemblyUri)});
+            "".Given(() => handler = new ExternalMethodsHandler() {RemoteFilesUris = new Uri[] { new Uri(externalAssemblyUri)}});
             "".Then(() => numberOfRegisteredMethods = handler.RegisterExternalMethods());
             "".Then(
                 () =>
-                    handler.AggregationMethodsAssembly.GetName().Name
+                    handler.AggregationMethodsAssemblies.First().GetName().Name
                         .Should()
                         .Be("CustomAggregationMethods"));
             "".Then(() => numberOfRegisteredMethods.Should().Be(2));
@@ -117,7 +117,7 @@ namespace System.Web.OData.Aggregation.Tests
 
             ExternalMethodsHandler handler = null;
             int numberOfRegisteredMethods = 0;
-            "".Given(() => handler = new ExternalMethodsHandler() { RemoteFileUri = new Uri(externalAssemblyUri) });
+            "".Given(() => handler = new ExternalMethodsHandler() { RemoteFilesUris = new Uri[] {new Uri(externalAssemblyUri) }});
             "".Given(() => exception= Record.Exception(
                             () => numberOfRegisteredMethods = handler.RegisterExternalMethods()));
             "".Then(() => exception.Should().BeOfType<InvalidOperationException>());
@@ -132,7 +132,7 @@ namespace System.Web.OData.Aggregation.Tests
 
             ExternalMethodsHandler handler = null;
             int numberOfRegisteredMethods = 0;
-            "".Given(() => handler = new ExternalMethodsHandler() { RemoteFileUri = new Uri(externalAssemblyUri) });
+            "".Given(() => handler = new ExternalMethodsHandler() { RemoteFilesUris = new Uri[] {new Uri(externalAssemblyUri) }});
             "".Given(() => exception = Record.Exception(
                             () => numberOfRegisteredMethods = handler.RegisterExternalMethods()));
             "".Then(() => exception.Should().BeOfType<ArgumentException>());
@@ -143,15 +143,13 @@ namespace System.Web.OData.Aggregation.Tests
         [Scenario]
         public void RegisterExternalMethodFromWebWrongSchema()
         {
-            Exception exception = null;
             string externalAssemblyUri = @"tcp://manupoc.blob.core.windows.net/yyy/xxx.dll";
 
             ExternalMethodsHandler handler = null;
             int numberOfRegisteredMethods = 0;
-            "".Given(() => handler = new ExternalMethodsHandler() { RemoteFileUri = new Uri(externalAssemblyUri) });
-            "".Given(() => exception = Record.Exception(
-                            () => numberOfRegisteredMethods = handler.RegisterExternalMethods()));
-            "".Then(() => exception.Should().BeOfType<ArgumentException>());
+            "".Given(() => handler = new ExternalMethodsHandler() { RemoteFilesUris = new Uri[] {new Uri(externalAssemblyUri) }});
+            "".Given(() => numberOfRegisteredMethods = handler.RegisterExternalMethods());
+            "".Then(() => numberOfRegisteredMethods.Should().Be(0));
         }
 
         [Scenario]
@@ -162,7 +160,7 @@ namespace System.Web.OData.Aggregation.Tests
 
             ExternalMethodsHandler handler = null;
             int numberOfRegisteredMethods = 0;
-            "".Given(() => handler = new ExternalMethodsHandler() { RemoteFileUri = new Uri(externalAssemblyUri) });
+            "".Given(() => handler = new ExternalMethodsHandler() { RemoteFilesUris = new Uri[] {new Uri(externalAssemblyUri) }});
             "".Given(() => exception = Record.Exception(
                             () => numberOfRegisteredMethods = handler.RegisterExternalMethods()));
             "".Then(() => exception.Should().BeOfType<ArgumentException>());
