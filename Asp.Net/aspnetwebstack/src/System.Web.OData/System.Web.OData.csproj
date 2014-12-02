@@ -140,6 +140,7 @@
     <Compile Include="OData\Query\Aggregation\SamplingMethods\RoundSampling.cs" />
     <Compile Include="OData\Query\Aggregation\SamplingMethods\SamplingMethodsImplementations.cs" />
     <Compile Include="OData\Query\ApplyQueryOption.cs" />
+    <Compile Include="OData\Query\Configuration\AggregationConfiguration.cs" />
     <Compile Include="OData\Query\Expressions\IdentityPropertyMapper.cs" />
     <Compile Include="OData\Query\IPropertyMapper.cs" />
     <Compile Include="OData\Query\ParameterAliasNodeTranslator.cs" />
@@ -466,6 +467,9 @@
     <CodeAnalysisDictionary Include="..\CodeAnalysisDictionary.xml" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="OData\Query\Configuration\AggregationConfiguration.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

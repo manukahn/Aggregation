@@ -1,10 +1,12 @@
-﻿using System.Configuration;
+﻿using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Web.OData.OData.Query.Aggregation.AggregationMethods;
 using System.Web.OData.OData.Query.Aggregation.SamplingMethods;
+using System.Web.OData.OData.Query.Configuration;
 
 namespace System.Web.OData.OData.Query.Aggregation
 {
@@ -29,7 +31,7 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <summary>
         /// Gets or sets the location of the remote assembly that contain custom aggregation and sampling methods. 
         /// </summary>
-        public Uri RemoteFileUri { get; set; }
+        public IEnumerable<Uri> RemoteFilesUris { get; set; }
 
         /// <summary>
         /// Register custom aggregation and sampling method located in a remote assembly.
@@ -37,8 +39,8 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <returns>The number of implementations that were registered.</returns>
         public int RegisterExternalMethods()
         {
-            AggregationMethodsAssembly = DownladExternalAssembly();
-            if (AggregationMethodsAssembly == null)
+            this.AggregationMethodsAssemblies = DownladExternalAssemblies();
+            if (AggregationMethodsAssemblies == null)
             {
                 return 0;
             }
@@ -48,31 +50,35 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <summary>
         /// Gets the custom aggregation or sampling remote assembly.
         /// </summary>
-        public Assembly AggregationMethodsAssembly { get; private set; }
+        public IEnumerable<Assembly> AggregationMethodsAssemblies { get; private set; }
 
         private int RegisterSamplingMethods()
         {
             int counter = 0;
-            var samplingMethodsTypes =
-                AggregationMethodsAssembly.DefinedTypes.Where(
-                    t => t.GetCustomAttributes(typeof(SamplingMethodAttribute), true).Any());
 
-
-            foreach (var samplingMethodType in samplingMethodsTypes)
+            foreach (var aggregationMethodAssembly in AggregationMethodsAssemblies)
             {
-                if (!typeof(SamplingImplementationBase).IsAssignableFrom(samplingMethodType))
-                {
-                    throw new ArgumentException("The decorated type does not derive from SamplingImplementationBase");
-                }
+                var samplingMethodsTypes =
+                    aggregationMethodAssembly.DefinedTypes.Where(
+                        t => t.GetCustomAttributes(typeof(SamplingMethodAttribute), true).Any());
 
-                var att = samplingMethodType.GetCustomAttributes(typeof(SamplingMethodAttribute)).FirstOrDefault();
-                if (att != null)
-                {
-                    var name = ((SamplingMethodAttribute)att).Name;
 
-                    SamplingMethodsImplementations.RegisterAggregationImplementation(name,
-                        (SamplingImplementationBase)Activator.CreateInstance(samplingMethodType));
-                    counter++;
+                foreach (var samplingMethodType in samplingMethodsTypes)
+                {
+                    if (!typeof(SamplingImplementationBase).IsAssignableFrom(samplingMethodType))
+                    {
+                        throw new ArgumentException("The decorated type does not derive from SamplingImplementationBase");
+                    }
+
+                    var att = samplingMethodType.GetCustomAttributes(typeof(SamplingMethodAttribute)).FirstOrDefault();
+                    if (att != null)
+                    {
+                        var name = ((SamplingMethodAttribute) att).Name;
+
+                        SamplingMethodsImplementations.RegisterAggregationImplementation(name,
+                            (SamplingImplementationBase) Activator.CreateInstance(samplingMethodType));
+                        counter++;
+                    }
                 }
             }
             return counter;
@@ -81,78 +87,104 @@ namespace System.Web.OData.OData.Query.Aggregation
         private int RegisterAggregationMethods()
         {
             int counter = 0;
-            var aggregationMethodsTypes =
-                this.AggregationMethodsAssembly.DefinedTypes.Where(
-                    t => t.GetCustomAttributes(typeof(AggregationMethodAttribute), true).Any());
 
-            foreach (var aggregationMethodType in aggregationMethodsTypes)
+            foreach (var aggregationMethodAssembly in AggregationMethodsAssemblies)
             {
-                if (!typeof(AggregationImplementationBase).IsAssignableFrom(aggregationMethodType))
-                {
-                    throw new ArgumentException("The decorated type does not derive from AggregationImplementationBase");
-                }
+                var aggregationMethodsTypes =
+                    aggregationMethodAssembly.DefinedTypes.Where(
+                        t => t.GetCustomAttributes(typeof(AggregationMethodAttribute), true).Any());
 
-                var att = aggregationMethodType.GetCustomAttributes(typeof(AggregationMethodAttribute)).FirstOrDefault();
-                if (att != null)
+                foreach (var aggregationMethodType in aggregationMethodsTypes)
                 {
-                    var name = ((AggregationMethodAttribute)att).Name;
+                    if (!typeof(AggregationImplementationBase).IsAssignableFrom(aggregationMethodType))
+                    {
+                        throw new ArgumentException(
+                            "The decorated type does not derive from AggregationImplementationBase");
+                    }
 
-                    AggregationMethodsImplementations.RegisterAggregationImplementation(name,
-                        (AggregationImplementationBase)Activator.CreateInstance(aggregationMethodType));
-                    counter++;
+                    var att =
+                        aggregationMethodType.GetCustomAttributes(typeof (AggregationMethodAttribute)).FirstOrDefault();
+                    if (att != null)
+                    {
+                        var name = ((AggregationMethodAttribute) att).Name;
+
+                        AggregationMethodsImplementations.RegisterAggregationImplementation(name,
+                            (AggregationImplementationBase) Activator.CreateInstance(aggregationMethodType));
+                        counter++;
+                    }
                 }
             }
             return counter;
         }
 
-        private Uri GetDefaultRemoteFileUri()
+        private IEnumerable<Uri> GetDefaultRemoteFileUri()
         {
-            var path = ConfigurationManager.AppSettings.Get("AggregationMethodsFileUri");
-            if (!string.IsNullOrEmpty(path))
+            var result = new List<Uri>();
+            var section = ConfigurationManager.GetSection("aggregation") as AggregationConfiguration;
+            if (section != null)
             {
-                return new Uri(path);
+                foreach (Location library in section.ExternalLibraries)
+                {
+                    result.Add(new Uri(library.Uri));
+                }
+            }
+            else
+            {
+                var path = ConfigurationManager.AppSettings.Get("AggregationMethodsFileUri");
+                if (!string.IsNullOrEmpty(path))
+                {
+                    result.Add(new Uri(path));
+                }
+            }
+
+            if (result.Any())
+            {
+                return result;
             }
 
             return null;
         }
 
-        private Assembly DownladExternalAssembly()
+        private IEnumerable<Assembly> DownladExternalAssemblies()
         {
-            if (this.RemoteFileUri == null)
+            if (this.RemoteFilesUris == null)
             {
-                this.RemoteFileUri = this.GetDefaultRemoteFileUri();
+                this.RemoteFilesUris = this.GetDefaultRemoteFileUri();
 
-                if (this.RemoteFileUri == null)
+                if (this.RemoteFilesUris == null)
                 {
                     return null;
                 }
             }
             try
             {
-                if (!this.RemoteFileUri.AbsoluteUri.EndsWith("dll"))
+                var result = new List<Assembly>();
+                foreach (var remoteFileUri in RemoteFilesUris)
                 {
-                    throw new ArgumentException("The uri of the file should end with .dll");
+                    if (!remoteFileUri.AbsoluteUri.EndsWith("dll"))
+                    {
+                        throw new ArgumentException("The uri of the file should end with .dll");
+                    }
+
+                    if ((remoteFileUri.Scheme == "http") || (remoteFileUri.Scheme == "https"))
+                    {
+                        var rnd = new Random((int) (DateTime.Now.Ticks%int.MaxValue));
+                        var fileName = string.Format("AggregationMethods-{0}.dll", rnd.Next(100000));
+                        var tempPath = Path.GetTempPath();
+                        var downloadedFile = Path.Combine(tempPath, fileName);
+                        var myWebClient = new WebClient();
+
+                        // Download the Web resource and save it into the current file system temp folder.
+                        myWebClient.DownloadFile(remoteFileUri, downloadedFile);
+
+                        result.Add(Assembly.LoadFile(downloadedFile));
+                    }
+                    else if (remoteFileUri.Scheme == "file")
+                    {
+                        result.Add(Assembly.LoadFile(remoteFileUri.LocalPath));
+                    }
                 }
-
-                if ((this.RemoteFileUri.Scheme == "http") || (this.RemoteFileUri.Scheme == "https"))
-                {
-                    var rnd = new Random((int)(DateTime.Now.Ticks % int.MaxValue));
-                    var fileName = string.Format("AggregationMethods-{0}.dll", rnd.Next(100000));
-                    var tempPath = Path.GetTempPath();
-                    var downloadedFile = Path.Combine(tempPath, fileName);
-                    var myWebClient = new WebClient();
-
-                    // Download the Web resource and save it into the current file system temp folder.
-                    myWebClient.DownloadFile(this.RemoteFileUri, downloadedFile);
-
-                    return Assembly.LoadFile(downloadedFile);
-                }
-                else if (this.RemoteFileUri.Scheme == "file")
-                {
-                    return Assembly.LoadFile(this.RemoteFileUri.LocalPath);
-                }
-
-                throw new ArgumentException("Invalid Uri for external aggregation methods file");
+                return result;
             }
             catch (FileNotFoundException ex)
             {
