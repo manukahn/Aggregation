@@ -15,8 +15,7 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
     [AggregationMethod("sumpower")]
     public class SumPowerAggregation : AggregationImplementationBase
     {
-
-        public static double TotalSqrt(IQueryable input, double pwr)
+        public static double SumPwr(IQueryable input, double pwr)
         {
             return input.AllElements().Cast<double>().Sum(i => Math.Pow(i, pwr));
         }
@@ -36,7 +35,7 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
             var aggregatedProperyType = GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
             var selectedValues = GetItemsToQuery(elementType, collection, propertyToAggregateExpression, aggregatedProperyType);
 
-            return TotalSqrt(selectedValues, pwr);
+            return SumPwr(selectedValues, pwr);
         }
 
         /// <summary>

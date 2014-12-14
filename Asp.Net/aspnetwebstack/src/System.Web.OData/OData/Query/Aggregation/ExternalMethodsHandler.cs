@@ -125,18 +125,18 @@ namespace System.Web.OData.OData.Query.Aggregation
             {
                 foreach (Location library in section.ExternalLibraries)
                 {
-                    result.Add(new Uri(library.Uri));
+                    try
+                    {
+                        result.Add(new Uri(library.Uri));
+                    }
+                    catch (UriFormatException ex)
+                    {
+                        result.Add(new Uri(Path.Combine(AppDomain.CurrentDomain.RelativeSearchPath, library.Uri)));
+                        result.Add(new Uri(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, library.Uri)));
+                    }
                 }
             }
-            else
-            {
-                var path = ConfigurationManager.AppSettings.Get("AggregationMethodsFileUri");
-                if (!string.IsNullOrEmpty(path))
-                {
-                    result.Add(new Uri(path));
-                }
-            }
-
+            
             if (result.Any())
             {
                 return result;
@@ -165,10 +165,10 @@ namespace System.Web.OData.OData.Query.Aggregation
                     {
                         throw new ArgumentException("The uri of the file should end with .dll");
                     }
-
+                    
                     if ((remoteFileUri.Scheme == "http") || (remoteFileUri.Scheme == "https"))
                     {
-                        var rnd = new Random((int) (DateTime.Now.Ticks%int.MaxValue));
+                        var rnd = new Random((int)(DateTime.Now.Ticks % int.MaxValue));
                         var fileName = string.Format("AggregationMethods-{0}.dll", rnd.Next(100000));
                         var tempPath = Path.GetTempPath();
                         var downloadedFile = Path.Combine(tempPath, fileName);
@@ -181,7 +181,10 @@ namespace System.Web.OData.OData.Query.Aggregation
                     }
                     else if (remoteFileUri.Scheme == "file")
                     {
-                        result.Add(Assembly.LoadFile(remoteFileUri.LocalPath));
+                        if (File.Exists(remoteFileUri.LocalPath))
+                        {
+                            result.Add(Assembly.LoadFile(remoteFileUri.LocalPath));
+                        }
                     }
                 }
                 return result;
