@@ -20,7 +20,7 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <param name="query">The collection</param>
         /// <param name="transformation">The transformation clause created by the parser</param>
         /// <param name="propertyToAggregateExpression">Projection Expression that defines access to the property to aggregate</param>
-        /// <param name="parematers">A list of string parameters sent to the aggregation method</param>
+        /// <param name="paramaters">A list of string parameters sent to the aggregation method</param>
         /// <returns>The Sum result</returns>
         public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
         {

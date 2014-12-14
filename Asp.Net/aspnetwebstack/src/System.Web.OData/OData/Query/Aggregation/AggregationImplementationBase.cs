@@ -19,7 +19,7 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <param name="collection">The collection on which to execute.</param>
         /// <param name="transformation">The name of the aggregation transformation.</param>
         /// <param name="propertyToAggregateExpression">Expression to the property to aggregate.</param>
-        /// <param name="parematers">A list of string parameters sent to the aggregation method</param>
+        /// <param name="parameters">A list of string parameters sent to the aggregation method</param>
         /// <returns>The result of the aggregation.</returns>
         public abstract object DoAggregatinon(Type elementType, IQueryable collection, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters);
 

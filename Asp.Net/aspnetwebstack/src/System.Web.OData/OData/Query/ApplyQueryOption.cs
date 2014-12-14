@@ -143,6 +143,8 @@ namespace System.Web.OData.OData.Query
                         var aliasType = aggregationImplementation.GetResultType(this.Context.ElementClrType, aggregateClause);
 
                         results = this.ProjectResult(aggragationResult, aggregateClause.Alias, aliasType);
+                        Context = new ODataQueryContext(this.Context.Model, results.ElementType);
+
                         break;
                     case "groupby":
                         IEnumerable<LambdaExpression> propertiesToGroupByExpressions = null;
@@ -181,6 +183,7 @@ namespace System.Web.OData.OData.Query
                             results = ProjectGroupedResult(groupByClause, keys, aggragatedValues, keyType, Context);
                         }
 
+                        Context = new ODataQueryContext(this.Context.Model, results.ElementType);
                         break;
                     case "filter":
                         var filterClause = transformation.Item2 as ApplyFilterClause;
