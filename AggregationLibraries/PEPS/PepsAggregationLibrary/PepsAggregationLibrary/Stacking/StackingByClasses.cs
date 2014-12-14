@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web.OData.OData.Query.Aggregation.SamplingMethods;
 using PepsAggregationLibrary.Projection;
+using System.Web;
+using SE.OIP.Common.Core.TimeZone;
 
 namespace PepsAggregationLibrary.Stacking
 {
@@ -18,14 +23,15 @@ namespace PepsAggregationLibrary.Stacking
         /// Do the sampling
         /// </summary>
         /// <param name="value">The timestamp</param>
-        /// <param name="utc">use UTC time zone</param>
+        /// <param name="local">use UTC time zone</param>
         /// <param name="factor">use factor of the time unit</param>
         /// <returns>The projected timestamp</returns>
-        public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
+        public static DateTimeOffset DoSampling(DateTimeOffset value, bool local, int factor = 1)
         {
-            if (utc)
+            var timezone = GetTimeZone();
+            if (local && timezone != null)
             {
-                value = value.Add(-value.Offset);
+                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
             }
 
             var month = value.Month - 1;
@@ -37,12 +43,7 @@ namespace PepsAggregationLibrary.Stacking
 
             month++;
 
-            if (!utc)
-            {
-                return new DateTimeOffset(NatualValues.Year, month, value.Day, value.Hour, value.Minute, value.Second, value.Offset);
-            }
-
-            return new DateTimeOffset(NatualValues.Year, month, value.Day, value.Hour, value.Minute, value.Second, TimeSpan.FromHours(0));
+            return new DateTimeOffset(NatualValues.Year, month, value.Day, value.Hour, value.Minute, value.Second, value.Offset);
         }
     }
 
@@ -56,14 +57,15 @@ namespace PepsAggregationLibrary.Stacking
         /// Do the sampling
         /// </summary>
         /// <param name="value">The timestamp</param>
-        /// <param name="utc">use UTC time zone</param>
+        /// <param name="local">use UTC time zone</param>
         /// <param name="factor">use factor of the time unit</param>
         /// <returns>The projected timestamp</returns>
-        public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
+        public static DateTimeOffset DoSampling(DateTimeOffset value, bool local, int factor = 1)
         {
-            if (utc)
+            var timezone = GetTimeZone();
+            if (local && timezone != null)
             {
-                value = value.Add(-value.Offset);
+                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
             }
 
             var day = value.Day - 1;
@@ -74,13 +76,7 @@ namespace PepsAggregationLibrary.Stacking
             }
 
             day++;
-
-            if (!utc)
-            {
-                return new DateTimeOffset(NatualValues.Year, NatualValues.Month, day, value.Hour, value.Minute, value.Second, value.Offset);
-            }
-
-            return new DateTimeOffset(NatualValues.Year, NatualValues.Month, day, value.Hour, value.Minute, value.Second, TimeSpan.FromHours(0));
+            return new DateTimeOffset(NatualValues.Year, NatualValues.Month, day, value.Hour, value.Minute, value.Second, value.Offset);
         }
     }
 
@@ -88,22 +84,22 @@ namespace PepsAggregationLibrary.Stacking
     /// <summary>
     /// stack/aggregate at ‘Week’ level
     /// </summary>
-    [SamplingMethod("stackByWeekMonday")]
-    public class StackByWeekMonday : TimeGroupingBase
+    [SamplingMethod("stackByDay-MondayBasedWeek")]
+    public class StackByDayMondayBasedWeek : TimeGroupingBase
     {
         /// <summary>
         /// Do the sampling
         /// </summary>
         /// <param name="value">The timestamp</param>
-        /// <param name="utc">use UTC time zone</param>
+        /// <param name="local">use UTC time zone</param>
         /// <param name="factor">use factor of the time unit</param>
         /// <returns>The projected timestamp</returns>
-        public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
+        public static DateTimeOffset DoSampling(DateTimeOffset value, bool local, int factor = 1)
         {
-            if (utc)
+            var timezone = GetTimeZone();
+            if (local && timezone != null)
             {
-                value = value.Add(-value.Offset);
-                return new DateTimeOffset(NatualValues.YearFirstWeekMonday1970, NatualValues.MonthFirstWeekMonday1970, NatualValues.DayOfWeekMonday1970, value.Hour, value.Minute, value.Second, TimeSpan.FromHours(0));
+                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
             }
 
             return new DateTimeOffset(NatualValues.YearFirstWeekMonday1970, NatualValues.MonthFirstWeekMonday1970, NatualValues.DayOfWeekMonday1970, value.Hour, value.Minute, value.Second, value.Offset);
@@ -114,22 +110,22 @@ namespace PepsAggregationLibrary.Stacking
     /// <summary>
     /// stack/aggregate at ‘Week’ level
     /// </summary>
-    [SamplingMethod("stackByDayOfWeekSunday")]
-    public class StackByDayOfWeekSunday : TimeGroupingBase
+    [SamplingMethod("stackByDay-SundayBasedWeek")]
+    public class StackByDaySundayBasedWeek : TimeGroupingBase
     {
         /// <summary>
         /// Do the sampling
         /// </summary>
         /// <param name="value">The timestamp</param>
-        /// <param name="utc">use UTC time zone</param>
+        /// <param name="local">use UTC time zone</param>
         /// <param name="factor">use factor of the time unit</param>
         /// <returns>The projected timestamp</returns>
-        public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
+        public static DateTimeOffset DoSampling(DateTimeOffset value, bool local, int factor = 1)
         {
-            if (utc)
+            var timezone = GetTimeZone();
+            if (local && timezone != null)
             {
-                value = value.Add(-value.Offset);
-                return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfWeekSunday1970, value.Hour, value.Minute, value.Second, TimeSpan.FromHours(0));
+                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
             }
 
             return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfWeekSunday1970, value.Hour, value.Minute, value.Second, value.Offset);
@@ -147,14 +143,15 @@ namespace PepsAggregationLibrary.Stacking
         /// Do the sampling
         /// </summary>
         /// <param name="value">The timestamp</param>
-        /// <param name="utc">use UTC time zone</param>
+        /// <param name="local">use UTC time zone</param>
         /// <param name="factor">use factor of the time unit</param>
         /// <returns>The projected timestamp</returns>
-        public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
+        public static DateTimeOffset DoSampling(DateTimeOffset value, bool local, int factor = 1)
         {
-            if (utc)
+            var timezone = GetTimeZone();
+            if (local && timezone != null)
             {
-                value = value.Add(-value.Offset);
+                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
             }
 
             var hour = value.Hour;
@@ -163,13 +160,8 @@ namespace PepsAggregationLibrary.Stacking
             {
                 hour = hour - reminder;
             }
-
-            if (!utc)
-            {
-                return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfMonth, hour, value.Minute, value.Second, value.Offset);
-            }
-
-            return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfMonth, hour, value.Minute, value.Second, TimeSpan.FromHours(0));
+            
+            return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfMonth, hour, value.Minute, value.Second, value.Offset);
         }
     }
 
@@ -183,14 +175,15 @@ namespace PepsAggregationLibrary.Stacking
         /// Do the sampling
         /// </summary>
         /// <param name="value">The timestamp</param>
-        /// <param name="utc">use UTC time zone</param>
+        /// <param name="local">use UTC time zone</param>
         /// <param name="factor">use factor of the time unit</param>
         /// <returns>The projected timestamp</returns>
-        public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
+        public static DateTimeOffset DoSampling(DateTimeOffset value, bool local, int factor = 1)
         {
-            if (utc)
+            var timezone = GetTimeZone();
+            if (local && timezone != null)
             {
-                value = value.Add(-value.Offset);
+                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
             }
 
             var minute = value.Minute;
@@ -199,13 +192,8 @@ namespace PepsAggregationLibrary.Stacking
             {
                 minute = minute - reminder;
             }
-
-            if (!utc)
-            {
-                return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfMonth, NatualValues.Hour, minute, value.Second, value.Offset);
-            }
-
-            return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfMonth, NatualValues.Hour, minute, value.Second, TimeSpan.FromHours(0));
+            
+            return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfMonth, NatualValues.Hour, minute, value.Second, value.Offset);
         }
     }
 
@@ -219,14 +207,15 @@ namespace PepsAggregationLibrary.Stacking
         /// Do the sampling
         /// </summary>
         /// <param name="value">The timestamp</param>
-        /// <param name="utc">use UTC time zone</param>
+        /// <param name="local">use UTC time zone</param>
         /// <param name="factor">use factor of the time unit</param>
         /// <returns>The projected timestamp</returns>
-        public static DateTimeOffset DoSampling(DateTimeOffset value, bool utc, int factor = 1)
+        public static DateTimeOffset DoSampling(DateTimeOffset value, bool local, int factor = 1)
         {
-            if (utc)
+            var timezone = GetTimeZone();
+            if (local && timezone != null)
             {
-                value = value.Add(-value.Offset);
+                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
             }
 
             var second = value.Minute;
@@ -236,12 +225,7 @@ namespace PepsAggregationLibrary.Stacking
                 second = second - reminder;
             }
 
-            if (!utc)
-            {
-                return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfMonth, NatualValues.Hour, NatualValues.Minute, second, value.Offset);
-            }
-
-            return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfMonth, NatualValues.Hour, NatualValues.Minute, second, TimeSpan.FromHours(0));
+            return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfMonth, NatualValues.Hour, NatualValues.Minute, second, value.Offset);
         }
     }
 
