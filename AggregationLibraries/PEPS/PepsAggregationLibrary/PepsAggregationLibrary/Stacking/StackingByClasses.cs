@@ -34,14 +34,18 @@ namespace PepsAggregationLibrary.Stacking
                 value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
             }
 
-            var month = value.Month - 1;
-            var reminder = month % factor;
-            if (reminder != 0)
+            int month = value.Month;
+            if (factor != 1)
             {
-                month = month - reminder;
-            }
+                month = value.Month - 1;
+                var reminder = month%factor;
+                if (reminder != 0)
+                {
+                    month = month - reminder;
+                }
 
-            month++;
+                month++;
+            }
 
             return new DateTimeOffset(NatualValues.Year, month, value.Day, value.Hour, value.Minute, value.Second, value.Offset);
         }
@@ -68,14 +72,19 @@ namespace PepsAggregationLibrary.Stacking
                 value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
             }
 
-            var day = value.Day - 1;
-            var reminder = day % factor;
-            if (reminder != 0)
+            int day = value.Day;
+            if (factor != 1)
             {
-                day = day - reminder;
+                day = value.Day - 1;
+                var reminder = day % factor;
+                if (reminder != 0)
+                {
+                    day = day - reminder;
+                }
+
+                day++;
             }
 
-            day++;
             return new DateTimeOffset(NatualValues.Year, NatualValues.Month, day, value.Hour, value.Minute, value.Second, value.Offset);
         }
     }
@@ -155,12 +164,15 @@ namespace PepsAggregationLibrary.Stacking
             }
 
             var hour = value.Hour;
-            var reminder = hour % factor;
-            if (reminder != 0)
+            if (factor != 1)
             {
-                hour = hour - reminder;
+                var reminder = hour%factor;
+                if (reminder != 0)
+                {
+                    hour = hour - reminder;
+                }
             }
-            
+
             return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfMonth, hour, value.Minute, value.Second, value.Offset);
         }
     }
@@ -187,12 +199,15 @@ namespace PepsAggregationLibrary.Stacking
             }
 
             var minute = value.Minute;
-            var reminder = minute % factor;
-            if (reminder != 0)
+            if (factor != 1)
             {
-                minute = minute - reminder;
+                var reminder = minute%factor;
+                if (reminder != 0)
+                {
+                    minute = minute - reminder;
+                }
             }
-            
+
             return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfMonth, NatualValues.Hour, minute, value.Second, value.Offset);
         }
     }
@@ -218,11 +233,14 @@ namespace PepsAggregationLibrary.Stacking
                 value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
             }
 
-            var second = value.Minute;
-            var reminder = second % factor;
-            if (reminder != 0)
+            var second = value.Second;
+            if (factor != 1)
             {
-                second = second - reminder;
+                var reminder = second % factor;
+                if (reminder != 0)
+                {
+                    second = second - reminder;
+                }
             }
 
             return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfMonth, NatualValues.Hour, NatualValues.Minute, second, value.Offset);

@@ -25,11 +25,14 @@ namespace PepsAggregationLibrary.Projection
                 value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
             }
 
-            var second = value.Minute;
-            var reminder = second % factor;
-            if (reminder != 0)
+            var second = value.Second;
+            if (factor != 1)
             {
-                second = second - reminder;
+                var reminder = second % factor;
+                if (reminder != 0)
+                {
+                    second = second - reminder;
+                }
             }
 
             return new DateTimeOffset(value.Year, value.Month, value.Day, value.Hour, value.Minute, second, value.Offset);
@@ -58,10 +61,13 @@ namespace PepsAggregationLibrary.Projection
             }
 
             var minute = value.Minute;
-            var reminder = minute % factor;
-            if (reminder != 0)
+            if (factor != 1)
             {
-                minute = minute - reminder;
+                var reminder = minute % factor;
+                if (reminder != 0)
+                {
+                    minute = minute - reminder;
+                }
             }
 
             return new DateTimeOffset(value.Year, value.Month, value.Day, value.Hour, minute, NatualValues.Second, value.Offset);
@@ -90,10 +96,13 @@ namespace PepsAggregationLibrary.Projection
             }
 
             var hour = value.Hour;
-            var reminder = hour % factor;
-            if (reminder != 0)
+            if (factor != 1)
             {
-                hour = hour - reminder;
+                var reminder = hour % factor;
+                if (reminder != 0)
+                {
+                    hour = hour - reminder;
+                }
             }
 
             return new DateTimeOffset(value.Year, value.Month, value.Day, hour, NatualValues.Minute, NatualValues.Second, value.Offset);
@@ -121,14 +130,19 @@ namespace PepsAggregationLibrary.Projection
                 value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
             }
 
-            var day = value.Day - 1;
-            var reminder = day % factor;
-            if (reminder != 0)
+            int day = value.Day;
+            if (factor != 1)
             {
-                day = day - reminder;
-            }
+                day = value.Day - 1;
+                var reminder = day % factor;
+                if (reminder != 0)
+                {
+                    day = day - reminder;
+                }
 
-            day++;
+                day++;
+            }
+            
             return new DateTimeOffset(value.Year, value.Month, day, NatualValues.Hour, NatualValues.Minute, NatualValues.Second, value.Offset);
         }
     }
@@ -154,14 +168,19 @@ namespace PepsAggregationLibrary.Projection
                 value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
             }
 
-            var month = value.Month - 1;
-            var reminder = month % factor;
-            if (reminder != 0)
+            int month = value.Month;
+            
+            if (factor != 1)
             {
-                month = month - reminder;
+                month = value.Month - 1;
+                var reminder = month % factor;
+                if (reminder != 0)
+                {
+                    month = month - reminder;
+                }
+                month++;
             }
-
-            month++;
+            
             return new DateTimeOffset(value.Year, month, NatualValues.DayOfMonth, NatualValues.Hour, NatualValues.Minute, NatualValues.Second, value.Offset);
         }
     }
@@ -336,10 +355,13 @@ namespace PepsAggregationLibrary.Projection
             }
 
             var year = value.Year;
-            var reminder = year % factor;
-            if (reminder != 0)
+            if (factor != 1)
             {
-                year = year - reminder;
+                var reminder = year%factor;
+                if (reminder != 0)
+                {
+                    year = year - reminder;
+                }
             }
 
             return new DateTimeOffset(year, NatualValues.Month, NatualValues.DayOfMonth, NatualValues.Hour, NatualValues.Minute, NatualValues.Second, value.Offset);
