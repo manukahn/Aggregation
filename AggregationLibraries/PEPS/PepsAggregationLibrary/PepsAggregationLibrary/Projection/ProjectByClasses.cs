@@ -22,7 +22,8 @@ namespace PepsAggregationLibrary.Projection
             var timezone = GetTimeZone();
             if (local && timezone != null)
             {
-                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
+                var dt = TimeZoneSource.ConvertUtcToLocal(value, timezone);
+                value = new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, default(TimeSpan));
             }
 
             var second = value.Second;
@@ -57,7 +58,8 @@ namespace PepsAggregationLibrary.Projection
             var timezone = GetTimeZone();
             if (local && timezone != null)
             {
-                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
+                var dt = TimeZoneSource.ConvertUtcToLocal(value, timezone);
+                value = new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, default(TimeSpan));
             }
 
             var minute = value.Minute;
@@ -92,7 +94,8 @@ namespace PepsAggregationLibrary.Projection
             var timezone = GetTimeZone();
             if (local && timezone != null)
             {
-                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
+                var dt = TimeZoneSource.ConvertUtcToLocal(value, timezone);
+                value = new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, default(TimeSpan));
             }
 
             var hour = value.Hour;
@@ -127,7 +130,8 @@ namespace PepsAggregationLibrary.Projection
             var timezone = GetTimeZone();
             if (local && timezone != null)
             {
-                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
+                var dt = TimeZoneSource.ConvertUtcToLocal(value, timezone);
+                value = new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, default(TimeSpan));
             }
 
             int day = value.Day;
@@ -165,7 +169,8 @@ namespace PepsAggregationLibrary.Projection
             var timezone = GetTimeZone();
             if (local && timezone != null)
             {
-                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
+                var dt = TimeZoneSource.ConvertUtcToLocal(value, timezone);
+                value = new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, default(TimeSpan));
             }
 
             int month = value.Month;
@@ -229,107 +234,119 @@ namespace PepsAggregationLibrary.Projection
     /// <summary>
     /// project/aggregate at ‘Week’ level
     /// </summary>
-    [SamplingMethod("projectByDay-MondayBasedWeek")]
-    public class ProjectByDayMondayBasedWeek : TimeGroupingBase
+    [SamplingMethod("projectByDayOfWeek")]
+    public class ProjectByDayOfWeek : TimeGroupingBase
     {
         /// <summary>
         /// Do the sampling
         /// </summary>
         /// <param name="value">The timestamp</param>
         /// <param name="local">use UTC time zone</param>
+        /// <param name="firstDay">The first day of the week</param>
         /// <param name="factor">use factor of the time unit</param>
         /// <returns>The projected timestamp</returns>
-        public static DateTimeOffset DoSampling(DateTimeOffset value, bool local, int factor = 1)
+        public static DateTimeOffset DoSampling(DateTimeOffset value, bool local, string firstDay, int factor = 1)
         {
             var timezone = GetTimeZone();
             if (local && timezone != null)
             {
-                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
+                var dt = TimeZoneSource.ConvertUtcToLocal(value, timezone);
+                value = new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, default(TimeSpan));
             }
 
-            double offset = 0;
-            var dayOfweek = value.DayOfWeek;
-            switch (dayOfweek)
-            {
-                    case DayOfWeek.Sunday:
-                        offset = -(6 + ((factor - 1) * 7));
-                    break;
-                    case DayOfWeek.Monday:
-                    offset = -(0 + ((factor - 1) * 7));
-                    break;
-                    case DayOfWeek.Tuesday:
-                        offset = -(1 + ((factor - 1) * 7));
-                    break;
-                    case DayOfWeek.Wednesday:
-                        offset = -(2 + ((factor - 1) * 7));
-                    break;
-                    case DayOfWeek.Thursday:
-                    offset = -(3 + ((factor - 1) * 7));
-                    break;
-                    case DayOfWeek.Friday:
-                    offset = -(4 + ((factor - 1) * 7));
-                    break;
-                    case DayOfWeek.Saturday:
-                    offset = -(5 + ((factor - 1) * 7));
-                    break;
-            }
-
+            var offset = ProjectByDayOfWeek.GetOffset(value.DayOfWeek, firstDay, factor);
             value = value.AddDays(offset);
+            
             return new DateTimeOffset(value.Year, value.Month, value.Day, NatualValues.Hour, NatualValues.Minute, NatualValues.Second, value.Offset);
         }
-    }
 
-
-    /// <summary>
-    /// project/aggregate at ‘Week’ level
-    /// </summary>
-    [SamplingMethod("projectByDay-SundayBasedWeek")]
-    public class ProjectByDaySundayBasedWeek : TimeGroupingBase
-    {
-        /// <summary>
-        /// Do the sampling
-        /// </summary>
-        /// <param name="value">The timestamp</param>
-        /// <param name="local">use UTC time zone</param>
-        /// <param name="factor">use factor of the time unit</param>
-        /// <returns>The projected timestamp</returns>
-        public static DateTimeOffset DoSampling(DateTimeOffset value, bool local, int factor = 1)
+        private static double GetOffset(DayOfWeek dayOfweek, string firstDay, int factor)
         {
-            var timezone = GetTimeZone();
-            if (local && timezone != null)
-            {
-                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
-            }
-
             double offset = 0;
-            var dayOfweek = value.DayOfWeek;
-            switch (dayOfweek)
+
+            if (firstDay.ToLower() == "monday")
             {
-                case DayOfWeek.Sunday:
-                    offset = -(0 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Monday:
-                    offset = -(1 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Tuesday:
-                    offset = -(2 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Wednesday:
-                    offset = -(3 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Thursday:
-                    offset = -(4 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Friday:
-                    offset = -(5 + ((factor - 1) * 7));
-                    break;
-                case DayOfWeek.Saturday:
-                    offset = -(6 + ((factor - 1) * 7));
-                    break;
+                switch (dayOfweek)
+                {
+                    case DayOfWeek.Sunday:
+                        offset = -(6 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Monday:
+                        offset = -(0 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Tuesday:
+                        offset = -(1 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Wednesday:
+                        offset = -(2 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Thursday:
+                        offset = -(3 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Friday:
+                        offset = -(4 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Saturday:
+                        offset = -(5 + ((factor - 1) * 7));
+                        break;
+                }
+            }
+            else if (firstDay.ToLower() == "saturday")
+            {
+                switch (dayOfweek)
+                {
+                    case DayOfWeek.Sunday:
+                        offset = -(1 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Monday:
+                        offset = -(2 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Tuesday:
+                        offset = -(3 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Wednesday:
+                        offset = -(4 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Thursday:
+                        offset = -(5 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Friday:
+                        offset = -(6 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Saturday:
+                        offset = -(0 + ((factor - 1) * 7));
+                        break;
+                }
+            }
+            else 
+            {
+                switch (dayOfweek)
+                {
+                    case DayOfWeek.Sunday:
+                        offset = -(0 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Monday:
+                        offset = -(1 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Tuesday:
+                        offset = -(2 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Wednesday:
+                        offset = -(3 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Thursday:
+                        offset = -(4 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Friday:
+                        offset = -(5 + ((factor - 1) * 7));
+                        break;
+                    case DayOfWeek.Saturday:
+                        offset = -(6 + ((factor - 1) * 7));
+                        break;
+                }
             }
 
-            value = value.AddDays(offset);
-            return new DateTimeOffset(value.Year, value.Month, value.Day, NatualValues.Hour, NatualValues.Minute, NatualValues.Second, value.Offset);
+            return offset;
         }
     }
 
@@ -351,7 +368,8 @@ namespace PepsAggregationLibrary.Projection
             var timezone = GetTimeZone();
             if (local && timezone != null)
             {
-                value = TimeZoneSource.ConvertUtcToLocal(value, timezone);
+                var dt = TimeZoneSource.ConvertUtcToLocal(value, timezone);
+                value = new DateTimeOffset(dt.Year, dt.Month, dt.Day, dt.Hour, dt.Minute, dt.Second, default(TimeSpan));
             }
 
             var year = value.Year;
@@ -380,9 +398,8 @@ namespace PepsAggregationLibrary.Projection
         /// </summary>
         /// <param name="value">The timestamp</param>
         /// <param name="local">use UTC time zone</param>
-        /// <param name="factor">use factor of the time unit</param>
         /// <returns>The projected timestamp</returns>
-        public static DateTimeOffset DoSampling(DateTimeOffset value, bool local, int factor = 1)
+        public static DateTimeOffset DoSampling(DateTimeOffset value, bool local)
         {
             return new DateTimeOffset(NatualValues.Year, NatualValues.Month, NatualValues.DayOfMonth, NatualValues.Hour, NatualValues.Minute, NatualValues.Second, TimeSpan.FromHours(0));
         }
