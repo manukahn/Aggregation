@@ -1,9 +1,11 @@
 ﻿using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Web.OData.OData.Query.Aggregation.AggregationMethods;
 using System.Web.OData.OData.Query.Aggregation.QueryableImplementation;
 using System.Web.OData.OData.Query.Aggregation.SamplingMethods;
@@ -245,38 +247,67 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <param name="resValues">matching list of values maid up from the original list of values lists.</param>
         private void CombineValuesListsPerKey(List<object> keys, List<object> values, out List<object> resKeys, out List<object> resValues)
         {
-            resValues = new List<object>();
-            resKeys = new List<object>();
-            List<int> visited = new List<int>();
+            var resValues1 = new List<object>();
+            var resKeys1 = new List<object>();
+            var visited = new List<int>();
 
-            for (int i = 0; i < keys.Count; i++)
+            if (keys.Distinct().Count() == keys.Count)
             {
-                if (visited.Contains(i))
-                {
-                    continue;
-                }
+                resKeys = keys;
+                resValues = values;
+                return;
+            }
 
-                resValues.Add(values[i]);
-                resKeys.Add(keys[i]);
-                for (int j = i; j < keys.Count; j++)
+            var keysToMearge = keys.GroupBy(key => key)
+                .Where(g => g.Count() > 1)
+                .Select(g => g.Key);
+
+            Parallel.For(0, keys.Count, keyIndex => DoMerge(keys, values, resKeys1, resValues1, visited, keyIndex, keysToMearge));
+            resValues = resValues1;
+            resKeys = resKeys1;
+        }
+
+        private static void DoMerge(List<object> keys, List<object> values, List<object> resKeys, List<object> resValues, List<int> visited, int keyIndex, IEnumerable<object> keysToMearge)
+        {
+            if (!keysToMearge.Contains(keys[keyIndex]))
+            {
+                lock (typeof(GroupByImplementation))
                 {
-                    var nextEqualKey = keys.FindIndex(j + 1 , x => x.Equals(keys[i]));
-                    if (nextEqualKey > j)
+                    resKeys.Add(keys[keyIndex]);
+                    resValues.Add(values[keyIndex]);
+                }
+            }
+            else
+            {
+                lock (typeof(GroupByImplementation))
+                {
+                    if (visited.Contains(keyIndex))
                     {
-                        if (values[nextEqualKey] is IEnumerable<object>)
+                        return;
+                    }
+
+                    var key = keys[keyIndex];
+                    visited.Add(keyIndex);
+                    var lst = (values[keyIndex] as IEnumerable<object>).ToList();
+                    var nextEqualKey = keys.FindIndex(keyIndex + 1, x => x.Equals(key));
+                    while (nextEqualKey != -1)
+                    {
+                        if (nextEqualKey > keyIndex)
                         {
-                            var index = resValues.Count - 1;
-                            var lst = (resValues.Last() as IEnumerable<object>).ToList();
                             lst.AddRange(values[nextEqualKey] as IEnumerable<object>);
-                            resValues.RemoveAt(index);
-                            resValues.Insert(index, lst);
+                            visited.Add(nextEqualKey);
                         }
-                        else
-                        {
-                            resValues.Add(values[nextEqualKey]);
-                        }
-                        visited.Add(nextEqualKey);
-                        j = nextEqualKey - 1;
+                        nextEqualKey = keys.FindIndex(nextEqualKey + 1, x => x.Equals(key));
+                    }
+                    if (!resKeys.Contains(key))
+                    {
+                        resKeys.Add(key);
+                        resValues.Add(lst);
+                    }
+                    else
+                    {
+                        var index = resKeys.IndexOf(key);
+                        (resValues[index] as List<object>).AddRange(lst);
                     }
                 }
             }
