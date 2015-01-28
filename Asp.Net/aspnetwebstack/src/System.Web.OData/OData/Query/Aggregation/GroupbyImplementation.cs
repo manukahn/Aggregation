@@ -46,7 +46,8 @@ namespace System.Web.OData.OData.Query.Aggregation
 
             // if group by is not supported in this IQueriable provider convert the grouping into memory implementation
             object convertedResult = null;
-            if (QueriableProviderAdapter.ConvertionIsRequiredAsExpressionIfNotSupported(keys, maxResults, out convertedResult))
+            int numberOfTempResults;
+            if (QueriableProviderAdapter.ConvertionIsRequiredAsExpressionIfNotSupported(keys, maxResults, out convertedResult, out numberOfTempResults))
             {
                 keys = convertedResult as IQueryable;
             }
@@ -81,7 +82,8 @@ namespace System.Web.OData.OData.Query.Aggregation
 
             // if group by is not supported in this IQueriable provider convert the grouping into memory implementation
             object convertedResult = null;
-            if (QueriableProviderAdapter.ConvertionIsRequiredAsExpressionIfNotSupported(groupingResults, maxResults, out convertedResult))
+            int numberOfTempResults;
+            if (QueriableProviderAdapter.ConvertionIsRequiredAsExpressionIfNotSupported(groupingResults, maxResults, out convertedResult, out numberOfTempResults))
             {
                 groupingResults = convertedResult as IQueryable;
             }
@@ -94,8 +96,13 @@ namespace System.Web.OData.OData.Query.Aggregation
             // Here we make sure that keys are distinct and all values that belong to a key are written to the right list.  
             List<object> distictKeys;
             List<object> groupedValuesPerKey;
-            this.CombineValuesListsPerKey(keys.AllElements(), groupedValues.AllElements(), out distictKeys, out groupedValuesPerKey);
-            keys = distictKeys.AsQueryable();
+
+            if (numberOfTempResults > 1)
+            {
+                this.CombineValuesListsPerKey(keys.AllElements(), groupedValues.AllElements(), out distictKeys, out groupedValuesPerKey);
+                keys = distictKeys.AsQueryable();
+            }
+            groupedValuesPerKey = groupedValues.AllElements();
 
             var results = new List<object>();
             foreach (var values in groupedValuesPerKey)
@@ -292,7 +299,7 @@ namespace System.Web.OData.OData.Query.Aggregation
                     var nextEqualKey = keys.FindIndex(keyIndex + 1, x => x.Equals(key));
                     while (nextEqualKey != -1)
                     {
-                        if (nextEqualKey > keyIndex)
+                        if ((nextEqualKey > keyIndex) && (!visited.Contains(nextEqualKey)))
                         {
                             lst.AddRange(values[nextEqualKey] as IEnumerable<object>);
                             visited.Add(nextEqualKey);

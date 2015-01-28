@@ -2,6 +2,7 @@
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Reflection;
 using System.Web.Http;
 using System.Web.Http.Dispatcher;
@@ -76,8 +77,9 @@ namespace System.Web.OData.OData.Query
         /// <param name="query">The original <see cref="IQueryable"/>.</param>
         /// <param name="querySettings">The <see cref="ODataQuerySettings"/> that contains all the query application related settings.</param>
         /// <param name="assembliesResolver">IAssembliesResolver provided by the framework.</param>
+        /// <param name="aggregationWindowSize">The max number of results to aggregate in each aggregation batch</param>
         /// <returns>The new <see cref="IQueryable"/> After the apply query has been applied to.</returns>
-        public IQueryable ApplyTo(IQueryable query, ODataQuerySettings querySettings, IAssembliesResolver assembliesResolver)
+        public IQueryable ApplyTo(IQueryable query, ODataQuerySettings querySettings, IAssembliesResolver assembliesResolver, int aggregationWindowSize)
         {
             if (query == null)
             {
@@ -104,6 +106,10 @@ namespace System.Web.OData.OData.Query
             }
 
             var maxResults = querySettings.PageSize ?? 2000;
+            if (aggregationWindowSize != 0)
+            {
+                maxResults = aggregationWindowSize;
+            }
 
             // Call InterceptingProvider.Intercept that will create a new <see cref="InterceptingProvider"/> and set its visitors. 
             // InterceptingProvider will wrap the actual IQueryable to implement unsupported operations in memory.

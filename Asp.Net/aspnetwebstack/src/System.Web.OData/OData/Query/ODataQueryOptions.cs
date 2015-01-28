@@ -44,6 +44,8 @@ namespace System.Web.OData.Query
 
         private ODataQueryOptionParser _queryOptionParser;
 
+        private int _aggregationWindowSize = 0;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ODataQueryOptions"/> class based on the incoming request and some metadata information from
         /// the <see cref="ODataQueryContext"/>.
@@ -90,6 +92,9 @@ namespace System.Web.OData.Query
                         ThrowIfEmpty(kvp.Value, "$apply");
                         RawValues.Apply = kvp.Value;
                         Apply = new ApplyQueryOption(context, _queryOptionParser);
+                        break;
+                    case "aggregationWindowSize":
+                        _aggregationWindowSize = int.Parse(kvp.Value);
                         break;
                     case "$filter":
                         ThrowIfEmpty(kvp.Value, "$filter");
@@ -289,7 +294,7 @@ namespace System.Web.OData.Query
             IQueryable result = query;
             if (Apply != null)
             {
-                result = Apply.ApplyTo(result, querySettings, _assembliesResolver);
+                result = Apply.ApplyTo(result, querySettings, _assembliesResolver, _aggregationWindowSize);
                 UpdateOtherQueryOptions(result);
             }
             // Construct the actual query and apply them in the following order: filter, orderby, skip, top

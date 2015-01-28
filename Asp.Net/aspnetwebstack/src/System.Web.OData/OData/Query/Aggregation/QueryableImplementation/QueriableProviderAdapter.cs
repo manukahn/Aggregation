@@ -26,19 +26,22 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         /// <param name="query">Query to execute.</param>
         /// <param name="maxResults">The max number of results allowed in a single transaction against a persistence provider.</param>
         /// <param name="convertedResult">The result of the query.</param>
+        /// <param name="numberOfTempResults">The number of temporary results that should be combined.</param>
         /// <returns>A <see cref="bool"/> that specify if the query was converted and executed.</returns>
-        public static bool ConvertionIsRequiredAsExpressionIfNotSupported(IQueryable query, int maxResults, out object convertedResult)
+        public static bool ConvertionIsRequiredAsExpressionIfNotSupported(IQueryable query, int maxResults, out object convertedResult, out int numberOfTempResults)
         {
             var vistor = new MethodExpressionsMarker();
             var methodsNames = vistor.Eval(query.Expression);
             var providerName = query.Provider.GetType().Name;
+            numberOfTempResults = 1;
+
             List<string> knownUnsupportedFunctions;
             if (unsupportedMethodsPerProvider.TryGetValue(providerName, out knownUnsupportedFunctions))
             {
                 if (knownUnsupportedFunctions.Intersect(methodsNames).Count() > 0)
                 {
                     var adapter = new QueriableProviderAdapter() { Provider = query.Provider, MaxCollectionSize = maxResults };
-                    convertedResult = adapter.Eval(query.Expression);
+                    convertedResult = adapter.Eval(query.Expression, out numberOfTempResults);
                     return true;
                 }
             }
@@ -67,7 +70,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
 
 
                 var adapter = new QueriableProviderAdapter() { Provider = query.Provider, MaxCollectionSize = maxResults };
-                convertedResult = adapter.Eval(query.Expression);
+                convertedResult = adapter.Eval(query.Expression, out numberOfTempResults);
                 return true;
             }
         }
@@ -121,15 +124,17 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
         /// </summary>
         /// <param name="query">The expression tree to convert.</param>
         /// <param name="combinerOfTemporaryResults">A function that is used to combine temporary results to a final one. 
+        /// <param name="numberOfTempResults">The number of temporary results that should be combined.</param>
         /// This function is used when the query execution has to be split because the collection to query has more elements than 
         /// the max number of results allowed in a single transaction against a persistence provider.
         /// </param>
         /// <returns>A result of a method call expression.</returns>
-        public object Eval(Expression query, Func<List<Tuple<object, int>>, object> combinerOfTemporaryResults = null)
+        public object Eval(Expression query, out int numberOfTempResults, Func<List<Tuple<object, int>>, object> combinerOfTemporaryResults = null)
         {
             var baseCollections = new Dictionary<Expression, QueryableRecord>();
             var tempResults = new List<Tuple<object, int>>();
             object res = EvalImplementation<object>(query, baseCollections, 0);
+            numberOfTempResults = 1;
 
             var realRecord = baseCollections.Values.FirstOrDefault(record => record.LimitReached.HasValue && record.LimitReached.Value == true);
             if (realRecord == null)
@@ -155,7 +160,7 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             {
                 combinerOfTemporaryResults = this.CombineTemporaryResults;
             }
-
+            numberOfTempResults = tempResults.Count;
             return combinerOfTemporaryResults(tempResults);
         }
 

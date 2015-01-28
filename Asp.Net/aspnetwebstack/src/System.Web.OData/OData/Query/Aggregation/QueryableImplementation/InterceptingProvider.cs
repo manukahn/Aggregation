@@ -160,7 +160,8 @@ namespace System.Web.OData.OData.Query.Aggregation.QueryableImplementation
             catch (NotSupportedException)
             {
                 var adapter = new QueriableProviderAdapter() { Provider = _underlyingProvider, MaxCollectionSize = MaxResults };
-                var res = adapter.Eval(expression, Combiner);
+                int numberOfTempResults;
+                var res = adapter.Eval(expression, out numberOfTempResults, Combiner);
                 return res;
             }
         }
