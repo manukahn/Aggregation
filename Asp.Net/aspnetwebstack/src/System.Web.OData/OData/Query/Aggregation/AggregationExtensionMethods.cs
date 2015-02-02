@@ -1,6 +1,9 @@
 ﻿using System;
+using System.CodeDom;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,7 +11,6 @@ namespace System.Web.OData.OData.Query.Aggregation
 {
     public static class AggregationExtensionMethods
     {
-
         /// <summary>
         /// Gets the first element in an IQueriable.
         /// </summary>
@@ -28,13 +30,13 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <returns>List of objects</returns>
         public static List<object> AllElements(this IQueryable queryable)
         {
-            var results = new List<object>();
-            var enumerator = queryable.GetEnumerator();
-            while (enumerator.MoveNext())
-            {
-                results.Add(enumerator.Current);
-            }
-            return results;
+            return AllElements<object>(queryable).AsParallel().ToList();
+        }
+        
+
+        public static IList<T> AllElements<T>(this IQueryable queryable)
+        {
+            return (queryable as IEnumerable).Cast<T>().AsParallel().ToList();
         }
 
         /// <summary>

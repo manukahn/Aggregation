@@ -292,15 +292,16 @@ namespace System.Web.OData.Query
             }
 
             IQueryable result = query;
-            if (Apply != null)
-            {
-                result = Apply.ApplyTo(result, querySettings, _assembliesResolver, _aggregationWindowSize);
-                UpdateOtherQueryOptions(result);
-            }
             // Construct the actual query and apply them in the following order: filter, orderby, skip, top
             if (Filter != null)
             {
                 result = Filter.ApplyTo(result, querySettings, _assembliesResolver);
+            }
+
+            if (Apply != null)
+            {
+                result = Apply.ApplyTo(result, querySettings, _assembliesResolver, _aggregationWindowSize);
+                UpdateOtherQueryOptions(result);
             }
 
             if (Count != null && Request.ODataProperties().TotalCount == null)

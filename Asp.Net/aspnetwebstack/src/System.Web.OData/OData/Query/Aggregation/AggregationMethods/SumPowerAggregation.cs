@@ -33,7 +33,9 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         {
             var pwr = double.Parse(parameters.First());
             var aggregatedProperyType = GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
-            var selectedValues = GetItemsToQuery(elementType, collection, propertyToAggregateExpression, aggregatedProperyType);
+            var projectionDelegate = GetProjectionDelegate(elementType, transformation.AggregatableProperty, propertyToAggregateExpression);
+
+            var selectedValues = GetItemsToQuery(elementType, collection, projectionDelegate, aggregatedProperyType);
 
             return SumPwr(selectedValues, pwr);
         }

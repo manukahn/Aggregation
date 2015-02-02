@@ -21,14 +21,15 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <param name="propertyToAggregateExpression">Projection Expression that defines access to the property to aggregate</param>
         /// <param name="parameters">A list of string parameters sent to the aggregation method</param>
         /// <returns>The Sum result</returns>
-        public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
+        public override object DoAggregatinon(Type elementType, IQueryable collection, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
         {
             var resultType = this.GetResultType(elementType, transformation);
-            var selected = (ExpressionHelpers.QueryableSelect(query, elementType, resultType, propertyToAggregateExpression)).AsQueryable();
+            var aggregatedProperyType = GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
+            var projectionDelegate = GetProjectionDelegate(elementType, transformation.AggregatableProperty, propertyToAggregateExpression);
+            var selectedValues = GetItemsToQuery(elementType, collection, projectionDelegate, aggregatedProperyType);
 
             //call: (selected.AsQueryable() as IQueryable<double>).Min();
-            return ExpressionHelpers.Min(resultType, selected);
-
+            return ExpressionHelpers.Min(resultType, selectedValues);
         }
 
         /// <summary>

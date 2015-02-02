@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Http.Headers;
@@ -13,6 +15,23 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
     [AggregationMethod("sum")]
     public class SumAggregation : AggregationImplementationBase
     {
+        
+        public static double Total(IQueryable input)
+        {
+            return input.AllElements<double>().Sum();
+        }
+
+
+        public static float TotalFloat(IQueryable input)
+        {
+            return input.AllElements<float>().Sum();
+        }
+
+        public static decimal TotalDecimal(IQueryable input)
+        {
+            return input.AllElements<decimal>().Sum();
+        }
+
         /// <summary>
         /// Implement the Sum aggregation method
         /// </summary>
@@ -22,11 +41,40 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <param name="propertyToAggregateExpression">Projection Expression that defines access to the property to aggregate</param>
         /// <param name="paramaters">A list of string parameters sent to the aggregation method</param>
         /// <returns>The Sum result</returns>
-        public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
+        public override object DoAggregatinon(Type elementType, IQueryable collection, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
         {
+            object res;
             var resultType = this.GetResultType(elementType, transformation);
-            return ExpressionHelpers.SelectAndSum(query, elementType, resultType, propertyToAggregateExpression);
+            var aggregatedProperyType = GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
+            var projectionDelegate = GetProjectionDelegate(elementType, transformation.AggregatableProperty, propertyToAggregateExpression);
+            var selectedValues = GetItemsToQuery(elementType, collection, projectionDelegate, aggregatedProperyType);
+
+            if (resultType == typeof(decimal))
+            {
+                return TotalDecimal(selectedValues);
+            }
+            if (resultType == typeof(float))
+            {
+                return TotalFloat(selectedValues);
+            }
+            
+            return Total(selectedValues);
         }
+
+        /// <summary>
+        /// Implement the Sum aggregation method
+        /// </summary>
+        /// <param name="elementType">The type of entities</param>
+        /// <param name="query">The collection</param>
+        /// <param name="transformation">The transformation clause created by the parser</param>
+        /// <param name="propertyToAggregateExpression">Projection Expression that defines access to the property to aggregate</param>
+        /// <param name="paramaters">A list of string parameters sent to the aggregation method</param>
+        /// <returns>The Sum result</returns>
+        //public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
+        //{
+        //    var resultType = this.GetResultType(elementType, transformation);
+        //    return ExpressionHelpers.SelectAndSum(query, elementType, resultType, propertyToAggregateExpression);
+        //}
 
         /// <summary>
         /// Get the type of the aggregation result

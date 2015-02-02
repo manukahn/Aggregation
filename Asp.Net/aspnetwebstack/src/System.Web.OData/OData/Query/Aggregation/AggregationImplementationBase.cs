@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
@@ -12,6 +13,11 @@ namespace System.Web.OData.OData.Query.Aggregation
     /// </summary>
     public abstract class AggregationImplementationBase : ApplyImplementationBase
     {
+        /// <summary>
+        /// Collection of delegates for obtaining a property value of the entity to aggregate
+        /// </summary>
+        protected static ConcurrentDictionary<string, Delegate> propertyProjectionDelegates = new ConcurrentDictionary<string, Delegate>();
+
         /// <summary>
         /// Execute the aggregation method.
         /// </summary>
@@ -39,6 +45,27 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// and item2 is the number of elements that produced this temporary result.</param>
         /// <returns>The final result.</returns>
         public abstract object CombineTemporaryResults(List<Tuple<object, int>> temporaryResults);
+
+
+        /// <summary>
+        /// Get the delegates for obtaining a property value of the entity to aggregate
+        /// </summary>
+        /// <param name="elementType">The entity Type</param>
+        /// <param name="aggregatableProperty">The property to aggregate</param>
+        /// <param name="propertyToAggregateExpression">The expression to use for obtaining the property value</param>
+        /// <returns>A delegate for obtaining a property value of the entity to aggregate</returns>
+        protected static Delegate GetProjectionDelegate(Type elementType, string aggregatableProperty, LambdaExpression propertyToAggregateExpression)
+        {
+            Delegate projectionDelegate;
+            var projectionIdentifier = elementType.Name + aggregatableProperty;
+            if (!propertyProjectionDelegates.TryGetValue(projectionIdentifier, out projectionDelegate))
+            {
+                projectionDelegate = propertyToAggregateExpression.Compile();
+                propertyProjectionDelegates[projectionIdentifier] = projectionDelegate;
+            }
+            return projectionDelegate;
+        }
+
 
         /// <summary>
         /// Helper method to get the type of a property path such as Sales.Product.Category.Name. 
@@ -120,11 +147,9 @@ namespace System.Web.OData.OData.Query.Aggregation
         /// <param name="propertyToAggregateExpression">The lambda expression that chooses a property from the input elements.</param>
         /// <param name="aggregatedPropertyType">Type of the selected property to aggregate.</param>
         /// <returns>The collection of items to query.</returns>
-        public static IQueryable GetItemsToQuery(Type elementType, IQueryable query,
-            LambdaExpression propertyToAggregateExpression, Type aggregatedPropertyType)
+        public static IQueryable GetItemsToQuery(Type elementType, IQueryable query, Delegate propertyToAggregateExpression, Type aggregatedPropertyType)
         {
-            var selected =
-                (ExpressionHelpers.QueryableSelect(query, elementType, aggregatedPropertyType, propertyToAggregateExpression)).AsQueryable();
+            var selected = (ExpressionHelpers.Select(query, elementType, aggregatedPropertyType, propertyToAggregateExpression)).AsQueryable();
             return selected;
         }
 

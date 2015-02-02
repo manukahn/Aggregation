@@ -49,23 +49,6 @@ namespace System.Web.OData
         private static MethodInfo _maxMethod = GenericMethodOf(_ => Queryable.Max<int>(default(IQueryable<int>)));
         private static MethodInfo _simpleCountMethod = GenericMethodOf(_ => Queryable.Count<int>(default(IQueryable<int>)));
 
-        private static Dictionary<Type, MethodInfo> _queriableSelectAndSumMethods = new Dictionary<Type, MethodInfo>();
-        private static Dictionary<Type, MethodInfo> _queriableSelectAndAverageMethods = new Dictionary<Type, MethodInfo>();
-
-        static ExpressionHelperMethods()
-        {
-            var types = new Type[]
-            {
-                typeof(int), typeof(int?), typeof(long), typeof(long?), typeof(float), typeof(float?),
-                typeof(double), typeof(double?), typeof(decimal), typeof(decimal?)
-            };
-            foreach (var t in types)
-            {
-                _queriableSelectAndSumMethods.Add(t, GetQueryableSpecificMethodInfo("Sum", t).GetGenericMethodDefinition());
-                _queriableSelectAndAverageMethods.Add(t, GetQueryableSpecificMethodInfo("Average", t).GetGenericMethodDefinition());
-            }
-        }
-
         public static MethodInfo QueryableSimpleCountGeneric
         {
             get { return _simpleCountMethod; }
@@ -207,17 +190,6 @@ namespace System.Web.OData
             get { return _queryableOfTypeMethod; }
         }
 
-        public static MethodInfo QueryableSelectAndSumGeneric(Type resultType)
-        {
-            return _queriableSelectAndSumMethods[resultType];
-        }
-
-        public static MethodInfo QueryableSelectAndAverageGeneric(Type resultType)
-        {
-            return _queriableSelectAndAverageMethods[resultType];
-        }
-
-
         private static MethodInfo GenericMethodOf<TReturn>(Expression<Func<object, TReturn>> expression)
         {
             return GenericMethodOf(expression as Expression);
@@ -235,20 +207,18 @@ namespace System.Web.OData
         }
 
         /// <summary>
-        /// Get the method info of methods such as: public static double Sum<TSource>(this IQueryable<TSource> source, Expression<Func<TSource,double>> selector)
+        /// Get the method info of methods such as: public static double Sum<TSource>(this IQueryable<TSource> source, Func<TSource,double> selector)
         /// </summary>
         /// <param name="methodName"></param>
         /// <param name="resultType"></param>
         public static MethodInfo GetQueryableSpecificMethodInfo(string methodName, Type resultType)
         {
-            var q = typeof(Queryable).GetMethods()
+           var q1 = typeof(Enumerable).GetMethods()
                 .Where(mi => mi.IsGenericMethod && mi.Name == methodName && mi.GetParameters().Count() == 2);
 
-            return q.First(mi => mi.GetParameters()
+            return q1.First(mi => mi.GetParameters()
                             .Second()
                             .ParameterType.GetGenericArguments()
-                            .First()
-                            .GetGenericArguments()
                             .Second()
                             .FullName == resultType.FullName);
         }

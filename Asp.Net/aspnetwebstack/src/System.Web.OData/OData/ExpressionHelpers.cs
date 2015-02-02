@@ -2,6 +2,7 @@
 
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -81,31 +82,19 @@ namespace System.Web.OData
             return selectMethod.Invoke(null, new Object[] { dataToProject, selector }) as IQueryable;
         }
 
+        public static IEnumerable Select(IEnumerable enumerable, Type elementType, Type resultType, Delegate projection)
+        {
+            MethodInfo selectMethod = ExpressionHelperMethods.EnumerableSelectGeneric.MakeGenericMethod(elementType, resultType);
+            return selectMethod.Invoke(null, new object[] { enumerable, projection }) as IEnumerable;
+        }
 
         public static IEnumerable Select(IEnumerable enumerable, Type elementType, Type resultType, LambdaExpression projectionLambda)
         {
+            IEnumerable res = null;
             MethodInfo selectMethod = ExpressionHelperMethods.EnumerableSelectGeneric.MakeGenericMethod(elementType, resultType);
-            return selectMethod.Invoke(null, new object[] { enumerable, projectionLambda.Compile() }) as IEnumerable;
-        }
+            var projection = projectionLambda.Compile();
 
-
-        public static IQueryable QueryableSelect(IQueryable query, Type elementType, Type resultType, LambdaExpression projectionLambda)
-        {
-            MethodInfo selectMethod = ExpressionHelperMethods.QueryableSelectGeneric.MakeGenericMethod(elementType, resultType);
-            return selectMethod.Invoke(null, new object[] { query, projectionLambda }) as IQueryable;
-        }
-
-
-        public static object SelectAndSum(IQueryable query, Type elementType, Type resultType, LambdaExpression projectionLambda)
-        {
-            MethodInfo selectAndSumMethod = ExpressionHelperMethods.QueryableSelectAndSumGeneric(resultType).MakeGenericMethod(elementType);
-            return selectAndSumMethod.Invoke(null, new object[] { query, projectionLambda });
-        }
-
-        public static object SelectAndAverage(IQueryable query, Type elementType, Type resultType, LambdaExpression projectionLambda)
-        {
-            MethodInfo selectAndSumMethod = ExpressionHelperMethods.QueryableSelectAndAverageGeneric(resultType).MakeGenericMethod(elementType);
-            return selectAndSumMethod.Invoke(null, new object[] { query, projectionLambda });
+            return selectMethod.Invoke(null, new object[] { enumerable, projection }) as IEnumerable;
         }
 
         public static long Count(IQueryable query, Type type)

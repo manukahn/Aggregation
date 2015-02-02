@@ -103,32 +103,39 @@ namespace System.Web.OData.OData.Query.Aggregation
                 keys = distictKeys.AsQueryable();
             }
             groupedValuesPerKey = groupedValues.AllElements();
+            int numberOfResults = groupedValuesPerKey.Count;
 
-            var results = new List<object>();
-            foreach (var values in groupedValuesPerKey)
+            var tmpAggragatedValues = new object[numberOfResults];
+            var projectionLambda = AggregationImplementationBase.GetProjectionLambda(this.Context.ElementClrType, transformation.Aggregate, propertyToAggregateExpression);
+            string[] aggregationParams = AggregationImplementationBase.GetAggregationParams(transformation.Aggregate.AggregationMethod);
+            
+            Parallel.For(0, numberOfResults, (i =>
             {
                 IQueryable valuesAsQueryable;
-                if (values is IEnumerable<object>)
+                if (groupedValuesPerKey[i] is IEnumerable<object>)
                 {
-                    valuesAsQueryable = ExpressionHelpers.Cast(this.Context.ElementClrType, (values as IEnumerable<Object>).AsQueryable());
+                    valuesAsQueryable = ExpressionHelpers.Cast(this.Context.ElementClrType,
+                        (groupedValuesPerKey[i] as IEnumerable<Object>).AsQueryable());
                 }
                 else
                 {
-                    valuesAsQueryable = ExpressionHelpers.Cast(this.Context.ElementClrType, (new List<Object>() { values }).AsQueryable());
+                    valuesAsQueryable = ExpressionHelpers.Cast(this.Context.ElementClrType,
+                        (new List<Object>() { groupedValuesPerKey[i] }).AsQueryable());
                 }
-                
+
                 IQueryable queryToUse = valuesAsQueryable;
                 if (transformation.Aggregate.AggregatableProperty.Contains('/'))
                 {
-                    queryToUse = AggregationImplementationBase.FilterNullValues(query, this.Context.ElementClrType, transformation.Aggregate);
+                    queryToUse = AggregationImplementationBase.FilterNullValues(query, this.Context.ElementClrType,
+                        transformation.Aggregate);
                 }
-                var projectionLambda = AggregationImplementationBase.GetProjectionLambda(this.Context.ElementClrType, transformation.Aggregate, propertyToAggregateExpression);
-                string[] aggregationParams = AggregationImplementationBase.GetAggregationParams(transformation.Aggregate.AggregationMethod);
-                var aggragationResult = aggregationImplementation.DoAggregatinon(this.Context.ElementClrType, queryToUse, transformation.Aggregate, projectionLambda, aggregationParams);
-                results.Add(aggragationResult);
-            }
 
-            aggragatedValues = results.ToArray();
+                var aggragationResult = aggregationImplementation.DoAggregatinon(this.Context.ElementClrType, queryToUse,
+                    transformation.Aggregate, projectionLambda, aggregationParams);
+                tmpAggragatedValues[i] = aggragationResult;
+            }));
+
+            aggragatedValues = tmpAggragatedValues;
         }
 
         /// <summary>

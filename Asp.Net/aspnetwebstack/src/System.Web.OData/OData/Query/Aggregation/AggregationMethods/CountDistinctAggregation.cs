@@ -22,13 +22,14 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <param name="propertyToAggregateExpression">Projection Expression that defines access to the property to aggregate</param>
         /// <param name="parameters">A list of string parameters sent to the aggregation method</param>
         /// <returns>The Sum result</returns>
-        public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
+        public override object DoAggregatinon(Type elementType, IQueryable collection, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
         {
             var propertyType = GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
-            var selected = (ExpressionHelpers.QueryableSelect(query, elementType, propertyType, propertyToAggregateExpression)).AsQueryable();
+            var projectionDelegate = GetProjectionDelegate(elementType, transformation.AggregatableProperty, propertyToAggregateExpression);
+            var selectedValues = GetItemsToQuery(elementType, collection, projectionDelegate, propertyType);
 
             //call: (selected.AsQueryable() as IQueryable<double>).Ditinct();
-            var distinct = ExpressionHelpers.Distinct(propertyType, selected);
+            var distinct = ExpressionHelpers.Distinct(propertyType, selectedValues);
 
             try
             {
@@ -41,7 +42,6 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
                 distinct = ExpressionHelpers.Cast(propertyType, distinct.AllElements().AsQueryable());
                 return ExpressionHelpers.Count(propertyType, distinct);
             }
-            
         }
 
         /// <summary>
