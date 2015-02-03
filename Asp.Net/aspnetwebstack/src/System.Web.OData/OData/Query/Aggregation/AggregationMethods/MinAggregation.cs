@@ -24,9 +24,7 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         public override object DoAggregatinon(Type elementType, IQueryable collection, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
         {
             var resultType = this.GetResultType(elementType, transformation);
-            var aggregatedProperyType = GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
-            var projectionDelegate = GetProjectionDelegate(elementType, transformation.AggregatableProperty, propertyToAggregateExpression);
-            var selectedValues = GetItemsToQuery(elementType, collection, projectionDelegate, aggregatedProperyType);
+            var selectedValues = GetSelectedValues(elementType, collection, transformation, propertyToAggregateExpression);
 
             //call: (selected.AsQueryable() as IQueryable<double>).Min();
             return ExpressionHelpers.Min(resultType, selectedValues);

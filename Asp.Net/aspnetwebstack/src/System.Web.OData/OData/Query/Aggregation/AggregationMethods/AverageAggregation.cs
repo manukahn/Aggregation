@@ -12,14 +12,13 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
     [AggregationMethod("average")]
     public class AverageAggregation : AggregationImplementationBase
     {
-
         public static double Total(IQueryable input)
         {
             return input.AllElements<double>().Average();
         }
 
         /// <summary>
-        /// Implement the Sum aggregation method
+        /// Implement the Average aggregation method
         /// </summary>
         /// <param name="elementType">The type of entities</param>
         /// <param name="query">The collection</param>
@@ -29,14 +28,10 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <returns>The Sum result</returns>
         public override object DoAggregatinon(Type elementType, IQueryable collection, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
         {
-            object res;
-            var aggregatedProperyType = GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
-            var projectionDelegate = GetProjectionDelegate(elementType, transformation.AggregatableProperty, propertyToAggregateExpression);
-            var selectedValues = GetItemsToQuery(elementType, collection, projectionDelegate, aggregatedProperyType);
-
+            var selectedValues = GetSelectedValues(elementType, collection, transformation, propertyToAggregateExpression);
             return Total(selectedValues);
         }
-        
+
         /// <summary>
         /// The type of the result of Average aggregation method is: double
         /// </summary>

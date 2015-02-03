@@ -32,10 +32,7 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         public override object DoAggregatinon(Type elementType, IQueryable collection, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
         {
             var pwr = double.Parse(parameters.First());
-            var aggregatedProperyType = GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
-            var projectionDelegate = GetProjectionDelegate(elementType, transformation.AggregatableProperty, propertyToAggregateExpression);
-
-            var selectedValues = GetItemsToQuery(elementType, collection, projectionDelegate, aggregatedProperyType);
+            var selectedValues = GetSelectedValues(elementType, collection, transformation, propertyToAggregateExpression);
 
             return SumPwr(selectedValues, pwr);
         }

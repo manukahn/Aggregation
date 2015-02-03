@@ -57,7 +57,7 @@ namespace System.Web.OData.OData.Query.Aggregation
         protected static Delegate GetProjectionDelegate(Type elementType, string aggregatableProperty, LambdaExpression propertyToAggregateExpression)
         {
             Delegate projectionDelegate;
-            var projectionIdentifier = elementType.Name + aggregatableProperty;
+            var projectionIdentifier = string.Format("{0}.{1}.{2}",elementType.Namespace, elementType.Name, aggregatableProperty);
             if (!propertyProjectionDelegates.TryGetValue(projectionIdentifier, out projectionDelegate))
             {
                 projectionDelegate = propertyToAggregateExpression.Compile();
@@ -86,6 +86,22 @@ namespace System.Web.OData.OData.Query.Aggregation
             }
 
             return null;
+        }
+        
+        /// <summary>
+        /// Get the selected values to aggregate
+        /// </summary>
+        /// <param name="elementType">The type of entities</param>
+        /// <param name="collection">The collection to aggregate</param>
+        /// <param name="transformation">The transformation clause created by the parser</param>
+        /// <param name="propertyToAggregateExpression">Projection Expression that defines access to the property to aggregate</param>
+        /// <returns>The selected values to aggregate</returns>
+        protected IQueryable GetSelectedValues(Type elementType, IQueryable collection, ApplyAggregateClause transformation,
+            LambdaExpression propertyToAggregateExpression)
+        {
+            var aggregatedProperyType = this.GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
+            var projectionDelegate = GetProjectionDelegate(elementType, transformation.AggregatableProperty, propertyToAggregateExpression);
+            return GetItemsToQuery(elementType, collection, projectionDelegate, aggregatedProperyType);
         }
 
         /// <summary>

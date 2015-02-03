@@ -43,16 +43,14 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
         /// <returns>The Sum result</returns>
         public override object DoAggregatinon(Type elementType, IQueryable collection, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
         {
-            object res;
             var resultType = this.GetResultType(elementType, transformation);
-            var aggregatedProperyType = GetAggregatedPropertyType(elementType, transformation.AggregatableProperty);
-            var projectionDelegate = GetProjectionDelegate(elementType, transformation.AggregatableProperty, propertyToAggregateExpression);
-            var selectedValues = GetItemsToQuery(elementType, collection, projectionDelegate, aggregatedProperyType);
+            var selectedValues = GetSelectedValues(elementType, collection, transformation, propertyToAggregateExpression);
 
             if (resultType == typeof(decimal))
             {
                 return TotalDecimal(selectedValues);
             }
+
             if (resultType == typeof(float))
             {
                 return TotalFloat(selectedValues);
