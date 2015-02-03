@@ -26,6 +26,8 @@ namespace System.Web.OData.OData.Query
         private ApplyClause _applyClause;
         private static MethodInfo _intercept_mi;
 
+        private const int MAX_AGGREGATION_WINDOW_SIZE = 1000000;
+
         static ApplyQueryOption()
         {
             _intercept_mi = typeof(InterceptingProvider)
@@ -108,7 +110,9 @@ namespace System.Web.OData.OData.Query
             var maxResults = querySettings.PageSize ?? 2000;
             if (aggregationWindowSize != 0)
             {
-                maxResults = aggregationWindowSize;
+                maxResults = (aggregationWindowSize < MAX_AGGREGATION_WINDOW_SIZE)
+                    ? aggregationWindowSize
+                    : MAX_AGGREGATION_WINDOW_SIZE;
             }
 
             // Call InterceptingProvider.Intercept that will create a new <see cref="InterceptingProvider"/> and set its visitors. 
