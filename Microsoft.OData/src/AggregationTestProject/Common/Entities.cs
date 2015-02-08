@@ -17,6 +17,8 @@ namespace AggregationTestProject.Common
 
         public int Time { get; set; }
 
+        public DateTimeOffset Timestamp { get; set; }
+
     }
 
     public class Product
