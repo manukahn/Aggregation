@@ -114,6 +114,8 @@
     <Compile Include="OData\Query\Aggregation\AggregationExtensionMethods.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationImplementationBase.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationMethods\AggregationMethodsImplementations.cs" />
+    <Compile Include="OData\Query\Aggregation\AggregationMethods\StandardDeviationAggregation.cs" />
+    <Compile Include="OData\Query\Aggregation\AggregationMethods\VarianceAggregation.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationMethods\SumPowerAggregation.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationTypesGenerator.cs" />
     <Compile Include="OData\Query\Aggregation\AggregationImplementations.cs" />

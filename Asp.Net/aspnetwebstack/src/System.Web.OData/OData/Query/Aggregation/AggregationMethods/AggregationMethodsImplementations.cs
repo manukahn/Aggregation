@@ -20,6 +20,8 @@ namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
             AggregationMethodsImplementations.RegisterAggregationImplementation("max", new MaxAggregation());
             AggregationMethodsImplementations.RegisterAggregationImplementation("countdistinct", new CountDistinctAggregation());
             AggregationMethodsImplementations.RegisterAggregationImplementation("sumpower", new SumPowerAggregation());
+            AggregationMethodsImplementations.RegisterAggregationImplementation("standarddeviation", new StandardDeviationAggregation());
+            AggregationMethodsImplementations.RegisterAggregationImplementation("variance", new VarianceAggregation());
         }
 
         /// <summary>

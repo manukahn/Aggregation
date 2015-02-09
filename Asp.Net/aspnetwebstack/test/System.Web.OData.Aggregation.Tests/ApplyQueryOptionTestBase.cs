@@ -126,7 +126,7 @@ namespace System.Web.OData.Aggregation.Tests
             {
                 data = TestDataSource.CreateData();
             }
-            results = subject.ApplyTo(data, settings, assembliesResolver);
+            results = subject.ApplyTo(data, settings, assembliesResolver, maxResults);
             return results;
         }
 

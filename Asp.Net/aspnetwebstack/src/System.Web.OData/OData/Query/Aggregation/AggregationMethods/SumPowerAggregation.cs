@@ -10,14 +10,14 @@ using Microsoft.OData.Core.UriParser.Semantic;
 namespace System.Web.OData.OData.Query.Aggregation.AggregationMethods
 {
     /// <summary>
-    /// Implementation of Average aggregation method
+    /// Implementation of SumPower aggregation method
     /// </summary>
     [AggregationMethod("sumpower")]
     public class SumPowerAggregation : AggregationImplementationBase
     {
         public static double SumPwr(IQueryable input, double pwr)
         {
-            return input.AllElements().Cast<double>().Sum(i => Math.Pow(i, pwr));
+            return input.AllElements<double>().Sum(i => Math.Pow(i, pwr));
         }
 
         /// <summary>

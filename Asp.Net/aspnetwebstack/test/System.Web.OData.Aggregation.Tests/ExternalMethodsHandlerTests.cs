@@ -27,8 +27,8 @@ namespace System.Web.OData.Aggregation.Tests
 
         public override object DoAggregatinon(Type elementType, IQueryable query, ApplyAggregateClause transformation, LambdaExpression propertyToAggregateExpression, params string[] parameters)
         {
-           var aggregatedProperyType = GetAggregatedPropertyType(elementType, transformation.AggregatableProperty); 
-           var selected = GetItemsToQuery(elementType, query, propertyToAggregateExpression, aggregatedProperyType);
+           
+           var selected = GetSelectedValues(elementType, query, transformation, propertyToAggregateExpression);
 
            MethodInfo minMethod = this.GetType().GetMethod("FirstPlusOne");
            return minMethod.Invoke(null, new[] { selected });
