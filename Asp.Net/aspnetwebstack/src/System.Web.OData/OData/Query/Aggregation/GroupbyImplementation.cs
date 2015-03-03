@@ -102,7 +102,11 @@ namespace System.Web.OData.OData.Query.Aggregation
                 this.CombineValuesListsPerKey(keys.AllElements(), groupedValues.AllElements(), out distictKeys, out groupedValuesPerKey);
                 keys = distictKeys.AsQueryable();
             }
-            groupedValuesPerKey = groupedValues.AllElements();
+            else
+            {
+                groupedValuesPerKey = groupedValues.AllElements();
+            }
+            
             int numberOfResults = groupedValuesPerKey.Count;
 
             var tmpAggragatedValues = new object[numberOfResults];
