@@ -25,6 +25,30 @@ namespace Microsoft.OData.Core.UriParser.Semantic
     internal static class ODataPathExtensions
     {
         /// <summary>
+        /// Removes operation segments from ODataPath.
+        /// </summary>
+        /// <param name="path">the ODataSelectPath to translate</param>
+        /// <returns>A new ODataPath path without operation segments.</returns>
+        public static ODataPath RemoveOperationSegments(this ODataPath path)
+        {
+            var segments = new List<ODataPathSegment>();
+
+            var enumerator = path.GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                var segment = enumerator.Current;
+                if (segment is OperationSegment)
+                {
+                    continue;
+                }
+
+                segments.Add(segment);
+            }
+
+            return new ODataPath(segments);
+        }
+
+        /// <summary>
         /// Computes the <see cref="IEdmTypeReference"/> of the resource identified by this <see cref="ODataPath"/>.
         /// </summary>
         /// <param name="path">Path to compute the type for.</param>

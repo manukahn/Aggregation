@@ -8,6 +8,8 @@
 
 //   See the Apache Version 2.0 License for specific language governing permissions and limitations under the License.
 
+using Microsoft.OData.Core.UriParser.Semantic;
+
 namespace Microsoft.OData.Core
 {
     #region Namespaces
@@ -147,6 +149,11 @@ namespace Microsoft.OData.Core
         public ODataMessageWriter(IODataResponseMessage responseMessage, ODataMessageWriterSettings settings, IEdmModel model)
         {
             ExceptionUtils.CheckArgumentNotNull(responseMessage, "responseMessage");
+
+            if (settings != null)
+            {
+                settings.ODataUri.Path = settings.ODataUri.Path.RemoveOperationSegments();
+            }
 
             // Clone the settings here so we can later modify them without changing the settings passed to us by the user
             this.settings = settings == null ? new ODataMessageWriterSettings() : new ODataMessageWriterSettings(settings);
