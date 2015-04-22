@@ -150,7 +150,7 @@ namespace Microsoft.OData.Core
         {
             ExceptionUtils.CheckArgumentNotNull(responseMessage, "responseMessage");
 
-            if (settings != null)
+            if (settings != null && settings.ODataUri != null && settings.ODataUri.Path != null) 
             {
                 settings.ODataUri.Path = settings.ODataUri.Path.RemoveOperationSegments();
             }
